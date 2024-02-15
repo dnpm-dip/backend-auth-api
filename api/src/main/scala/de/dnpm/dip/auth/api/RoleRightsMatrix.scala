@@ -1,5 +1,5 @@
+/*
 package de.dnpm.dip.auth.api
-
 
 
 class RolesRightsMatrix[Role,Operation] private (
@@ -38,3 +38,4 @@ object RolesRightsMatrix
     )
 
 }
+*/

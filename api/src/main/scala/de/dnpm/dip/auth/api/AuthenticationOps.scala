@@ -77,7 +77,7 @@ trait AuthenticationOps[Agent] extends AuthorizationOps
 }
 
 
-
+/*
 trait RoleBasedAuthenticationOps[Agent,Role,Operation] extends AuthenticationOps[Agent]
 {
 
@@ -97,3 +97,4 @@ trait RoleBasedAuthenticationOps[Agent,Role,Operation] extends AuthenticationOps
     AuthenticatedAction andThen Require(rolesRights.authorizationFor(op))
 
 }
+*/
