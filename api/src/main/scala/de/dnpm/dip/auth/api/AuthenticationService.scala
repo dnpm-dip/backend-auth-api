@@ -42,7 +42,7 @@ trait AuthenticationService[Agent]
 }
 
 
-trait UserAuthenticationService extends AuthenticationService[UserWithRoles]
+trait UserAuthenticationService extends AuthenticationService[UserPermissions]
 
 trait UserAuthenticationSPI extends SPI[UserAuthenticationService]
 
