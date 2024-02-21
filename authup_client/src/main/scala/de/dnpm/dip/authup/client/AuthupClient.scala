@@ -55,7 +55,7 @@ import de.dnpm.dip.service.auth.{
   Permissions,
   Roles
 }
-import com.google.inject.AbstractModule
+//import com.google.inject.AbstractModule
 
 
 /*
@@ -66,13 +66,14 @@ class AuthupClientSPI extends UserAuthenticationSPI
 }
 */
 
+/*
 class GuiceModule extends AbstractModule
 {
   override def configure = 
     bind(classOf[UserAuthenticationService])
       .to(classOf[AuthupClient])
 }
-
+*/
 
 class AuthupClient @Inject()(
   wsclient: WSClient

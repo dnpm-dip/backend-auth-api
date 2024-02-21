@@ -91,10 +91,16 @@ object Authorization
       ) = f(agent)
     }
 
+  def ownerOf[Id,Agent](
+    f: Id => Agent => Future[Boolean]
+  ): Id => Authorization[Agent] =
+    id => async { f(id) }
+
+
 }
 
 
-trait AuthorizationOps
+trait AuthorizationOps[Agent]
 {
 
   import ControllerHelpers.{
@@ -103,12 +109,15 @@ trait AuthorizationOps
   }
 
 
-  def Require[Agent](
+  type AuthReq[+T] = AuthenticatedRequest[Agent,T]
+
+
+  def Require(
     auth: Authorization[Agent],
     whenUnauthorized: => Result = Forbidden
   )(
     implicit ec: ExecutionContext
-  ) = new ActionFilter[({ type Req[T] = AuthenticatedRequest[Agent,T] })#Req]{
+  ) = new ActionFilter[AuthReq]{
 
     override val executionContext = ec
 
@@ -123,11 +132,3 @@ trait AuthorizationOps
   }
 
 }
-
-/*
-object OwnerOf
-{
-  def resource[Agent,Id](id: Id, f: Agent => Id): Authorization[Agent] =
-    Agent
-}
-*/

@@ -27,27 +27,66 @@ import play.api.mvc.{
 
 */
 
-trait AuthenticationOps[Agent] extends AuthorizationOps
+trait AuthenticationOps[Agent] extends AuthorizationOps[Agent]
 {
 
   this: BaseController =>
 
 
-  type AuthReq[+T] = AuthenticatedRequest[Agent,T]
+  def AuthenticatedAction[T](
+    bodyParser: BodyParser[T]
+  )(
+    implicit
+    ec: ExecutionContext,
+    authService: AuthenticationService[Agent]
+  ): ActionBuilder[AuthReq,T] =
+    new ActionBuilder[AuthReq,T]{
 
-  type AuthActionBuilder[Agent] = ActionBuilder[AuthReq,AnyContent]
+      override val parser =
+        bodyParser
+
+      override val executionContext =
+        ec
+
+      override def invokeBlock[A](
+        request: Request[A],
+        block: AuthReq[A] => Future[Result]
+      ): Future[Result] =
+        authService
+          .authenticate(request)
+          .flatMap {
+            _.fold(
+              Future.successful(_),  // forward the upstream auth provider's response
+              agent => block(new AuthenticatedRequest(agent,request))
+            )
+          }
+    }
+
+
+  def AuthenticatedAction[T](
+    authorization: Authorization[Agent],
+    bodyParser: BodyParser[T]
+  )(
+    implicit
+    ec: ExecutionContext,
+    authService: AuthenticationService[Agent]
+  ): ActionBuilder[AuthReq,T] =
+    AuthenticatedAction(bodyParser) andThen Require(authorization)
+
 
 
   def AuthenticatedAction(
     implicit
     ec: ExecutionContext,
     authService: AuthenticationService[Agent]
-  ): AuthActionBuilder[Agent] =
-    new ActionBuilder[AuthReq, AnyContent]{
+  ): ActionBuilder[AuthReq,AnyContent] = 
+    new ActionBuilder[AuthReq,AnyContent]{
 
-      override val parser = controllerComponents.parsers.default
+      override val parser =
+        controllerComponents.parsers.default
 
-      override val executionContext = ec
+      override val executionContext =
+        ec
 
       override def invokeBlock[T](
         request: Request[T],
@@ -70,31 +109,8 @@ trait AuthenticationOps[Agent] extends AuthorizationOps
     implicit
     ec: ExecutionContext,
     authService: AuthenticationService[Agent]
-  ): AuthActionBuilder[Agent] = 
+  ): ActionBuilder[AuthReq,AnyContent] = 
     AuthenticatedAction andThen Require(authorization)
 
-
 }
 
-
-/*
-trait RoleBasedAuthenticationOps[Agent,Role,Operation] extends AuthenticationOps[Agent]
-{
-
-  this: BaseController =>
-
-  val rolesRights: RolesRightsMatrix[Role,Operation]
-
-
-  def AuthenticatedOperation(
-    op: Operation
-  )(
-    implicit
-    ec: ExecutionContext,
-    authService: AuthenticationService[Agent],
-    hasRoleSet: Agent <:< { def roles: Set[Role] }
-  ): AuthActionBuilder[Agent] = 
-    AuthenticatedAction andThen Require(rolesRights.authorizationFor(op))
-
-}
-*/

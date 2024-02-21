@@ -9,7 +9,7 @@ import play.api.mvc.{
   RequestHeader,
   Result
 }
-import com.google.inject.AbstractModule
+//import com.google.inject.AbstractModule
 import cats.syntax.either._
 import de.dnpm.dip.util.Logging
 import de.dnpm.dip.auth.api.{
@@ -26,18 +26,25 @@ import de.dnpm.dip.service.auth.{
 class FakeAuthSPI extends UserAuthenticationSPI
 {
   override def getInstance: UserAuthenticationService =
-    new FakeAuthService
+    FakeAuthService.instance
 }
 
-
+/*
 class GuiceModule extends AbstractModule
 {
   override def configure =
     bind(classOf[UserAuthenticationService])
       .to(classOf[FakeAuthService])
 }
+*/
 
+object FakeAuthService
+{
+  lazy val instance =
+    new FakeAuthService
+}
 
+//class FakeAuthService
 class FakeAuthService
 extends UserAuthenticationService
 with Logging

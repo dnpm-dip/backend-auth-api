@@ -20,7 +20,8 @@ import play.api.mvc.{
 
 */
 
-class AuthenticatedRequest[Agent,+T](
+class AuthenticatedRequest[+Agent,+T]
+(
   val agent: Agent,
   val request: Request[T]
 )
