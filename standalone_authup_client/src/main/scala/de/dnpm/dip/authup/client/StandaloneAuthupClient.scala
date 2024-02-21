@@ -177,8 +177,8 @@ with Logging
       .map(
         resp =>
           resp.status match {
-            case 200 => resp.body[JsValue].as[TokenIntrospection].asRight[Result]
-            case _   => result(resp).asLeft[TokenIntrospection]
+            case 200 => resp.body[JsValue].as[TokenIntrospection].asRight
+            case _   => result(resp).asLeft
           }
       )
       .andThen {
@@ -203,7 +203,7 @@ with Logging
            result <-
              cache.get(token) match {
                case Some(tknInfo) =>
-                 Future.successful(tknInfo.asRight[Result])
+                 Future.successful(tknInfo.asRight)
              
                case None =>
                  introspect(token)
@@ -227,7 +227,7 @@ with Logging
          
        case None =>
          Future.successful(
-           Unauthorized("Unauthorized").asLeft[UserPermissions]
+           Unauthorized("Unauthorized").asLeft
          )
 
      }

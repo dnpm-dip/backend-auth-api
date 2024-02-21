@@ -146,8 +146,8 @@ with Logging
       .map(
         resp =>
           resp.status match {
-            case 200 => resp.json.as[TokenIntrospection].asRight[Result]
-            case _   => result(resp).asLeft[TokenIntrospection]
+            case 200 => resp.json.as[TokenIntrospection].asRight
+            case _   => result(resp).asLeft
           }
       )
       .andThen {
@@ -172,7 +172,7 @@ with Logging
            result <-
              cache.get(token) match {
                case Some(tknInfo) =>
-                 Future.successful(tknInfo.asRight[Result])
+                 Future.successful(tknInfo.asRight)
              
                case None =>
                  introspect(token)
@@ -196,7 +196,7 @@ with Logging
          
        case None =>
          Future.successful(
-           Unauthorized("Unauthorized").asLeft[UserPermissions]
+           Unauthorized("Unauthorized").asLeft
          )
 
      }
@@ -218,7 +218,7 @@ with Logging
         toJsObject(credentials) + ("grant_type" -> JsString("password"))
       )
       .collect {
-        case resp if resp.header.status == 200 =>
+        case resp if resp.status == 200 =>
           s"Bearer ${(resp.json \ "access_token").as[String]}"
       }
       .andThen {
