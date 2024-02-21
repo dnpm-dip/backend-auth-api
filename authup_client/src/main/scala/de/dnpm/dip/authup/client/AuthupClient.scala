@@ -84,12 +84,6 @@ with Logging
   private val config =
     Config.instance.get
 
-  /*
-   TODO:
-   - Configuration of Authup admin credentials for role/permission creation
-   - Create Roles and Permissions
-  */
-
   private val cache: Map[String,TokenIntrospection] =
     TrieMap.empty
 
