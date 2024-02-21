@@ -117,10 +117,17 @@ trait AuthorizationOps
         .map {
           case true  => None // No objections
           case false => Some(whenUnauthorized)
-//          case false => Some(Forbidden)
         }
     }
 
   }
 
 }
+
+/*
+object OwnerOf
+{
+  def resource[Agent,Id](id: Id, f: Agent => Id): Authorization[Agent] =
+    Agent
+}
+*/

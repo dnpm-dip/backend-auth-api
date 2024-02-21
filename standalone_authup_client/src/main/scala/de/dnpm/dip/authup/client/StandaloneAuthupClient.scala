@@ -34,12 +34,22 @@ import play.api.mvc.ControllerHelpers.{
   AUTHORIZATION,
   Unauthorized
 }
-import play.api.libs.ws.{
-  WSRequest,
-  WSResponse,
-  WSClient
+import akka.actor.ActorSystem
+import akka.stream.Materializer
+import play.api.libs.ws.ahc.{
+  StandaloneAhcWSClient => WSClient
 }
-import play.api.libs.json.JsString
+import play.api.libs.ws.{
+  StandaloneWSRequest => WSRequest,
+  StandaloneWSResponse => WSResponse
+}
+import play.api.libs.ws.JsonBodyReadables._
+import play.api.libs.ws.JsonBodyWritables._
+import play.api.libs.json.{
+  JsString,
+  JsObject,
+  JsValue
+}
 import play.api.libs.json.Json.{
   toJson,
   toJsObject
@@ -55,26 +65,47 @@ import de.dnpm.dip.service.auth.{
   Permissions,
   Roles
 }
-import com.google.inject.AbstractModule
+//import com.google.inject.AbstractModule
+
+
+
+class StandaloneAuthupClientSPI extends UserAuthenticationSPI
+{
+  override def getInstance: UserAuthenticationService =
+    StandaloneAuthupClient.instance
+}
 
 
 /*
-class AuthupClientSPI extends UserAuthenticationSPI
-{
-  override def getInstance: UserAuthenticationService =
-    new AuthupClient()
-}
-*/
-
 class GuiceModule extends AbstractModule
 {
   override def configure = 
     bind(classOf[UserAuthenticationService])
-      .to(classOf[AuthupClient])
+      .to(classOf[StandaloneAuthupClient])
+}
+*/
+
+
+object StandaloneAuthupClient
+{
+
+  private lazy implicit val system: ActorSystem =
+    ActorSystem()
+
+  private lazy implicit val materializer: Materializer =
+    Materializer.matFromSystem
+
+  private lazy val client =
+    WSClient()
+
+  lazy val instance =
+    new StandaloneAuthupClient(client)
 }
 
 
-class AuthupClient @Inject()(
+
+class StandaloneAuthupClient
+(
   wsclient: WSClient
 )
 extends UserAuthenticationService
@@ -86,7 +117,7 @@ with Logging
 
   /*
    TODO:
-   - Configuration of Authup admin credentials for role/permission creation
+   - Configuration of StandaloneAuthup admin credentials for role/permission creation
    - Create Roles and Permissions
   */
 
@@ -152,7 +183,7 @@ with Logging
       .map(
         resp =>
           resp.status match {
-            case 200 => resp.json.as[TokenIntrospection].asRight[Result]
+            case 200 => resp.body[JsValue].as[TokenIntrospection].asRight[Result]
             case _   => result(resp).asLeft[TokenIntrospection]
           }
       )
@@ -224,10 +255,10 @@ with Logging
         toJsObject(credentials) + ("grant_type" -> JsString("password"))
       )
       .collect {
-        case resp if resp.header.status == 200 =>
-          s"Bearer ${(resp.json \ "access_token").as[String]}"
+        case resp if resp.status == 200 =>
+          s"Bearer ${(resp.body[JsValue] \ "access_token").as[String]}"
       }
-      .andThen {
+      .andThen { 
         case Success(_) => log.debug("Logged into Authup")
       }
 
@@ -237,21 +268,25 @@ with Logging
     token: String
   )(
     implicit ec: ExecutionContext
-  ): Future[CreatedPermission] =
+  ): Future[CreatedPermission] = {
+
+    log.debug(s"Setting up permission '${permission.name}'")
+
     request("/permissions",Some(token))
      .post(toJson(permission))
      .flatMap {
        resp =>
          resp.status match {
            case 201 =>
-             Future.successful(resp.json.as[CreatedPermission])
+             Future.successful(resp.body[JsValue].as[CreatedPermission])
            case 409 =>
              request("/permissions",Some(token))
                .withQueryStringParameters("filter[name]" -> permission.name)
                .get()
-               .map(r => (r.json \ "data" \ 0).as[CreatedPermission])
+               .map(r => (r.body[JsValue] \ "data" \ 0).as[CreatedPermission])
          }
      }  
+  }
 
 
   private def createOrGet(
@@ -260,7 +295,10 @@ with Logging
     token: String
   )(
     implicit ec: ExecutionContext
-  ): Future[CreatedRole] =
+  ): Future[CreatedRole] = {
+
+    log.debug(s"Setting up role '${role.name}'")
+
     for {
       createdRole <-
         request("/roles",Some(token))
@@ -269,12 +307,12 @@ with Logging
            resp =>
              resp.status match {
                case 201 =>
-                 Future.successful(resp.json.as[CreatedRole])
+                 Future.successful(resp.body[JsValue].as[CreatedRole])
                case 409 =>
                  request("/roles",Some(token))
                    .withQueryStringParameters("filter[name]" -> role.name)
                    .get()
-                   .map(r => (r.json \ "data" \ 0).as[CreatedRole])
+                   .map(r => (r.body[JsValue] \ "data" \ 0).as[CreatedRole])
              }
          }
 
@@ -301,8 +339,24 @@ with Logging
 
     } yield createdRole
 
+  }
 
 
+  //TODO: Remove snake case conversion after Authup update
+  private val toLowerSnakeCase: String => String = {
+ 
+    // Adapted from:
+    // https://www.geeksforgeeks.org/how-to-convert-camel-case-string-to-snake-case-in-javascript/#approach-1-using-regular-expression
+
+    import scala.util.matching.Regex
+
+    in =>
+      "([a-z])([A-Z])".r
+        .replaceAllIn(in,mtch => s"${mtch.group(1)}_${mtch.group(2)}")
+        .toLowerCase
+  }
+    
+    
   override def setupPermissionModel(
     implicit ec: ExecutionContext
   ): Future[Boolean] = 
@@ -310,6 +364,7 @@ with Logging
 
       case Some(credentials) =>
         {
+          log.info("Setting up permission/role model")
           for {
             token <-
               loginAuthup(credentials)
@@ -319,11 +374,12 @@ with Logging
                 Permissions
                   .getAll
                   .map(_.name)
+                  .map(toLowerSnakeCase)  //TODO: Remove snake case conversion after Authup update
                   .map(Permission(_))
-                )(
-                  createOrGet(_,token)
-                )
-        
+              )(
+                createOrGet(_,token)
+              )
+
             permissionIdsByName =
               permissions
                 .map(p => p.name -> p.id)
@@ -335,9 +391,11 @@ with Logging
               )(
                 role =>
                   createOrGet(
-                    Role(role.name),
+//                    Role(role.name),
+                    Role(toLowerSnakeCase(role.name)),  //TODO: Remove snake case conversion after Authup update
                     role.permissions
                       .map(_.name)
+                         .map(toLowerSnakeCase)  //TODO: Remove snake case conversion after Authup update
                       .flatMap(permissionIdsByName.get),
                     token
                   )

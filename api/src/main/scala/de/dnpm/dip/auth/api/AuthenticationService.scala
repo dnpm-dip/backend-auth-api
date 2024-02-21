@@ -39,6 +39,11 @@ trait AuthenticationService[Agent]
     implicit ec: ExecutionContext
   ): Future[Either[Result,Agent]]
 
+
+  def setupPermissionModel(
+    implicit ec: ExecutionContext
+  ): Future[Boolean]
+
 }
 
 
