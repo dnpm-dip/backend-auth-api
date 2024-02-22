@@ -1,14 +1,13 @@
 package de.dnpm.dip.fake.auth
 
 
-//import javax.inject.Inject
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.must.Matchers._
+import org.scalatest.EitherValues._
 import play.api.test.FakeRequest
 import de.dnpm.dip.auth.api.UserAuthenticationService
 
 
-//class Tests @Inject()(service: UserAuthenticationService) extends AsyncFlatSpec
 class Tests extends AsyncFlatSpec
 {
 
@@ -23,9 +22,22 @@ class Tests extends AsyncFlatSpec
   }
 
 
-  "FakeAuthService.authenticate" must "have succeeded" in {
+  "Dummy Authentication" must "have succeeded" in {
 
-    service.authenticate(FakeRequest()).map(_.isRight mustBe true)
+    for {
+      result <- service.authenticate(FakeRequest())
+    } yield result.isRight mustBe true
+
+  }
+
+  "Dummy user" must "have non-empty set of permissions" in {
+
+    for {
+      result <- service.authenticate(FakeRequest())
+
+      user = result.value
+
+    } yield user.permissions must not be (empty) 
 
   }
 

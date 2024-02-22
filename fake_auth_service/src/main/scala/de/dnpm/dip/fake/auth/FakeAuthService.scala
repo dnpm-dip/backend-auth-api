@@ -1,6 +1,7 @@
 package de.dnpm.dip.fake.auth
 
 
+import scala.util.Failure
 import scala.concurrent.{
   Future,
   ExecutionContext
@@ -9,7 +10,6 @@ import play.api.mvc.{
   RequestHeader,
   Result
 }
-//import com.google.inject.AbstractModule
 import cats.syntax.either._
 import de.dnpm.dip.util.Logging
 import de.dnpm.dip.auth.api.{
@@ -22,21 +22,12 @@ import de.dnpm.dip.service.auth.{
 }
 
 
-
 class FakeAuthSPI extends UserAuthenticationSPI
 {
   override def getInstance: UserAuthenticationService =
     FakeAuthService.instance
 }
 
-/*
-class GuiceModule extends AbstractModule
-{
-  override def configure =
-    bind(classOf[UserAuthenticationService])
-      .to(classOf[FakeAuthService])
-}
-*/
 
 object FakeAuthService
 {
@@ -44,23 +35,31 @@ object FakeAuthService
     new FakeAuthService
 }
 
-//class FakeAuthService
 class FakeAuthService
 extends UserAuthenticationService
 with Logging
 {
 
-  private val userPermissions =
-    UserPermissions(
-      "Dummy-User-ID",
-      "dummy_user",
-      "Dummy",
-      "User",
-      Permissions
-        .getAll
-        .map(_.name)
-        .toSet
-    )
+  import scala.concurrent.ExecutionContext.Implicits._
+
+  private val userPermissions: Future[Either[Result,UserPermissions]] =
+    Future {
+      UserPermissions(
+        "Dummy-User-ID",
+        "dummy_user",
+        "Dummy",
+        "User",
+        Permissions
+          .getAll
+          .map(_.name)
+          .toSet
+      )
+    }
+    .map(_.asRight)
+    .andThen {
+      case Failure(t) =>
+        log.error("Fake Authentication Service: Failed to initialize dummy user with full permissions",t)
+    }
 
 
   override def authenticate(
@@ -70,17 +69,15 @@ with Logging
   ): Future[Either[Result,UserPermissions]] = {
 
     log.warn(
-      "Fake Authentication Service in operation! This always returns an authenticated user with full permissions, and is meant for testing purposes only!"
+      "Fake Authentication Service in operation! This always returns a DUMMY USER with FULL PERMISSIONS, and is meant for TESTING purposes only!"
     )
 
-    Future.successful(userPermissions.asRight[Result]) 
-
+    userPermissions
   }
 
   override  def setupPermissionModel(
     implicit ec: ExecutionContext
   ): Future[Boolean] =
     Future.successful(true)
-
 
 }

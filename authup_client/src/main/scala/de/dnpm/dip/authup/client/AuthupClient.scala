@@ -75,6 +75,7 @@ class GuiceModule extends AbstractModule
 }
 */
 
+
 class AuthupClient @Inject()(
   wsclient: WSClient
 )

@@ -91,12 +91,12 @@ object Authorization
       ) = f(agent)
     }
 
+/*  
   def ownerOf[Id,Agent](
     f: Id => Agent => Future[Boolean]
   ): Id => Authorization[Agent] =
     id => async { f(id) }
-
-
+*/
 }
 
 
@@ -130,5 +130,6 @@ trait AuthorizationOps[Agent]
     }
 
   }
+
 
 }

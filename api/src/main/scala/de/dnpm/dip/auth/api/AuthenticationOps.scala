@@ -112,5 +112,17 @@ trait AuthenticationOps[Agent] extends AuthorizationOps[Agent]
   ): ActionBuilder[AuthReq,AnyContent] = 
     AuthenticatedAction andThen Require(authorization)
 
+
+  // Variation of above builder method with authrorization argument, as extension method  
+  implicit class AuthActionBuilderOps[T](actionBuilder: ActionBuilder[AuthReq,T])
+  {
+    def requiring(
+      authorization: Authorization[Agent]
+    )(
+      implicit ec: ExecutionContext
+    ) =
+      actionBuilder andThen Require(authorization)
+  }
+
 }
 

@@ -335,7 +335,7 @@ with Logging
 
   }
 
-
+/*
   //TODO: Remove snake case conversion after Authup update
   private val toLowerSnakeCase: String => String = {
  
@@ -349,7 +349,7 @@ with Logging
         .replaceAllIn(in,mtch => s"${mtch.group(1)}_${mtch.group(2)}")
         .toLowerCase
   }
-    
+*/    
     
   override def setupPermissionModel(
     implicit ec: ExecutionContext
@@ -368,7 +368,6 @@ with Logging
                 Permissions
                   .getAll
                   .map(_.name)
-                  .map(toLowerSnakeCase)  //TODO: Remove snake case conversion after Authup update
                   .map(Permission(_))
               )(
                 createOrGet(_,token)
@@ -385,11 +384,9 @@ with Logging
               )(
                 role =>
                   createOrGet(
-//                    Role(role.name),
-                    Role(toLowerSnakeCase(role.name)),  //TODO: Remove snake case conversion after Authup update
+                    Role(role.name),
                     role.permissions
                       .map(_.name)
-                         .map(toLowerSnakeCase)  //TODO: Remove snake case conversion after Authup update
                       .flatMap(permissionIdsByName.get),
                     token
                   )
