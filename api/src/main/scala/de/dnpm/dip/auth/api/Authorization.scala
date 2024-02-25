@@ -4,9 +4,19 @@ package de.dnpm.dip.auth.api
 import scala.concurrent.{ExecutionContext,Future}
 import play.api.mvc.{
   ActionFilter,
+  ActionBuilder,
+  AnyContent,
+  BaseController,
+  BodyParser,
   ControllerHelpers,
   Result
 }
+import ControllerHelpers.{
+  Unauthorized,
+  Forbidden
+}
+
+
 
 /*
 
@@ -100,19 +110,13 @@ object Authorization
 }
 
 
-trait AuthorizationOps[Agent]
+trait AuthorizationOps[Agent] extends AuthenticationOps[Agent]
 {
 
-  import ControllerHelpers.{
-    Unauthorized,
-    Forbidden
-  }
+  this: BaseController =>
 
 
-  type AuthReq[+T] = AuthenticatedRequest[Agent,T]
-
-
-  def Require(
+  def require(
     auth: Authorization[Agent],
     whenUnauthorized: => Result = Forbidden
   )(
@@ -130,6 +134,40 @@ trait AuthorizationOps[Agent]
     }
 
   }
+
+
+  // Variation of above builder method require(..) with authorization argument, as extension method  
+  implicit class AuthActionBuilderOps[T](actionBuilder: ActionBuilder[AuthReq,T])
+  {
+    def requiring(
+      authorization: Authorization[Agent]
+    )(
+      implicit ec: ExecutionContext
+    ) =
+      actionBuilder andThen require(authorization)
+  }
+
+
+  def AuthorizedAction[T](
+    bodyParser: BodyParser[T]
+  )(
+    authorization: Authorization[Agent]
+  )(
+    implicit
+    ec: ExecutionContext,
+    authService: AuthenticationService[Agent]
+  ): ActionBuilder[AuthReq,T] =
+    AuthenticatedAction(bodyParser) andThen require(authorization)
+
+
+  def AuthorizedAction(
+    authorization: Authorization[Agent]
+  )(
+    implicit
+    ec: ExecutionContext,
+    authService: AuthenticationService[Agent]
+  ): ActionBuilder[AuthReq,AnyContent] =
+    AuthenticatedAction andThen require(authorization)
 
 
 }

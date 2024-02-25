@@ -335,21 +335,6 @@ with Logging
 
   }
 
-/*
-  //TODO: Remove snake case conversion after Authup update
-  private val toLowerSnakeCase: String => String = {
- 
-    // Adapted from:
-    // https://www.geeksforgeeks.org/how-to-convert-camel-case-string-to-snake-case-in-javascript/#approach-1-using-regular-expression
-
-    import scala.util.matching.Regex
-
-    in =>
-      "([a-z])([A-Z])".r
-        .replaceAllIn(in,mtch => s"${mtch.group(1)}_${mtch.group(2)}")
-        .toLowerCase
-  }
-*/    
     
   override def setupPermissionModel(
     implicit ec: ExecutionContext

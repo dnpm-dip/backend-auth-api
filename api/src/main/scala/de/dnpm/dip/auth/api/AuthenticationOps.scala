@@ -27,10 +27,13 @@ import play.api.mvc.{
 
 */
 
-trait AuthenticationOps[Agent] extends AuthorizationOps[Agent]
+trait AuthenticationOps[Agent]
 {
 
   this: BaseController =>
+
+
+  type AuthReq[+T] = AuthenticatedRequest[Agent,T]
 
 
   def AuthenticatedAction[T](
@@ -63,66 +66,12 @@ trait AuthenticationOps[Agent] extends AuthorizationOps[Agent]
     }
 
 
-  def AuthenticatedAction[T](
-    authorization: Authorization[Agent],
-    bodyParser: BodyParser[T]
-  )(
-    implicit
-    ec: ExecutionContext,
-    authService: AuthenticationService[Agent]
-  ): ActionBuilder[AuthReq,T] =
-    AuthenticatedAction(bodyParser) andThen Require(authorization)
-
-
-
   def AuthenticatedAction(
     implicit
     ec: ExecutionContext,
     authService: AuthenticationService[Agent]
   ): ActionBuilder[AuthReq,AnyContent] = 
-    new ActionBuilder[AuthReq,AnyContent]{
-
-      override val parser =
-        controllerComponents.parsers.default
-
-      override val executionContext =
-        ec
-
-      override def invokeBlock[T](
-        request: Request[T],
-        block: AuthReq[T] => Future[Result]
-      ): Future[Result] =
-        authService
-          .authenticate(request)
-          .flatMap {
-            _.fold(
-              Future.successful(_),  // forward the upstream auth provider's response
-              agent => block(new AuthenticatedRequest(agent,request))
-            )
-          }
-    }
-
-
-  def AuthenticatedAction(
-    authorization: Authorization[Agent]
-  )(
-    implicit
-    ec: ExecutionContext,
-    authService: AuthenticationService[Agent]
-  ): ActionBuilder[AuthReq,AnyContent] = 
-    AuthenticatedAction andThen Require(authorization)
-
-
-  // Variation of above builder method with authrorization argument, as extension method  
-  implicit class AuthActionBuilderOps[T](actionBuilder: ActionBuilder[AuthReq,T])
-  {
-    def requiring(
-      authorization: Authorization[Agent]
-    )(
-      implicit ec: ExecutionContext
-    ) =
-      actionBuilder andThen Require(authorization)
-  }
+    AuthenticatedAction(controllerComponents.parsers.default)
 
 }
 
