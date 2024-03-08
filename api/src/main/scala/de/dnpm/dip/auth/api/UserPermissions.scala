@@ -6,8 +6,8 @@ final case class UserPermissions
 (
   id: String,
   username: String,
-  givenName: String,
-  familyName: String,
+  givenName: Option[String],
+  familyName: Option[String],
 //  roles: Set[String],
   permissions: Set[String]
 )

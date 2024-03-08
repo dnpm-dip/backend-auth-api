@@ -47,8 +47,8 @@ with Logging
       UserPermissions(
         "Dummy-User-ID",
         "dummy_user",
-        "Dummy",
-        "User",
+        Some("Dummy"),
+        Some("User"),
         Permissions
           .getAll
           .map(_.name)

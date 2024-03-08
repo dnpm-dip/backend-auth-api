@@ -1,17 +1,24 @@
 package de.dnpm.dip.authup.client
 
 
+import java.io.{
+  InputStream,
+  FileInputStream
+}
 import scala.util.{
   Try,
   Failure
 }
-import de.dnpm.dip.util.Logging
-
-
+import scala.util.chaining._
+import scala.util.Using
+import scala.xml.XML
 import play.api.libs.json.{
   Json,
   OWrites
 }
+import de.dnpm.dip.util.Logging
+
+
 
 final case class Credentials
 (
@@ -25,7 +32,6 @@ object Credentials
 }
 
 
-
 trait Config
 {
   def baseUrl: String
@@ -36,66 +42,93 @@ trait Config
 object Config extends Logging
 {
 
-  private final case class SysPropConfig
+  private final case class Impl
   (
     baseUrl: String,
     adminCredentials: Option[Credentials]
   )
   extends Config
 
+ /*
+   * Expected XML Config structure:
+   *
+   * <?xml version="1.0" encoding="UTF-8"?>
+   * <Config>
+   *   ...
+   *   <Authup>
+   *     <baseURL value="http://localhost"/>
+   *    
+   *     <!-- OPTIONAL: Admin credential for auto-setup of permission/role model -->
+   *     <Admin username="admin" password="TOP_SECRET"/>
+   *   </Authup>
+   *   ...
+   * </Config>
+   */
+  
+
+  private def parseXML(in: InputStream): Config = {
+
+    val xml =
+      (XML.load(in) \\ "Authup")
+
+    Impl(
+      (xml \ "baseURL" \@ "value"),
+      Option(
+        (xml \ "Admin" \@ "username") -> (xml \ "Admin" \@ "password")
+      )
+      .collect {
+        case (username,password) if !(username.isBlank || password.isBlank) =>
+          Credentials(username,password)
+      }
+    )
+
+  }
+
 
   lazy val instance: Try[Config] = {
 
-    val sysProp = "dnpm.dip.authup.baseurl"
+    val configFileProp =
+      "dnpm.dip.authup.config.file"
 
-    (
-      for {
-        baseUrl <-
-          Try { Option(System.getProperty(sysProp)).get }
-            .map(
-              url =>
-                if (url endsWith "/") url.substring(0,url.length-1)
-                else url 
-            )
-      
-        adminCredentials =
-          for { 
-            username <- Option(System.getProperty("dnpm.dip.authup.admin.username"))
-            password <- Option(System.getProperty("dnpm.dip.authup.admin.password"))
-          } yield Credentials(
-            username,
-            password
-          )
-        
-      } yield SysPropConfig(
-        baseUrl,
-        adminCredentials
-      )
+    Using(new FileInputStream(System.getProperty(configFileProp)))(
+      parseXML
     )
     .recoverWith {
+      case t =>
+        log.warn(s"Couldn't load Authup client config, most likely due to undefined System property $configFileProp",t)
+        log.warn(s"Attempting fallback path via system properties")
+
+        val baseUrlProp = "dnpm.dip.authup.baseurl"
+        
+        for {
+          baseUrl <-
+            Try { Option(System.getProperty(baseUrlProp)).get }
+              .map(
+                url =>
+                  if (url endsWith "/") url.substring(0,url.length-1)
+                  else url 
+              )
+        
+          adminCredentials =
+            for { 
+              username <- Option(System.getProperty("dnpm.dip.authup.admin.username"))
+              password <- Option(System.getProperty("dnpm.dip.authup.admin.password"))
+            } yield Credentials(
+              username,
+              password
+            )
+          
+        } yield Impl(
+          baseUrl,
+          adminCredentials
+        )
+    }
+    .recoverWith {
       case t => 
-        log.error(s"Couldn't initialize Authup client config: Undefined required system property $sysProp")
+        log.error(s"Couldn't load Authup client config",t)
         Failure(t)
     }
 
   }
-
-/*  
-    Try { Option(System.getProperty(sysProp)).get }
-      .map(
-        url =>
-          Impl(
-            if (url endsWith "/") url.substring(0,url.length-1)
-            else url 
-          )
-      )
-      .recoverWith {
-        case t => 
-          log.error(s"Can't initialize Authup client config: Undefined system property $sysProp")
-          Failure(t)
-      }
-
-  }
-*/
 
 }

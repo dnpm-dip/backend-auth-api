@@ -88,8 +88,8 @@ final case class TokenIntrospection
   sub_kind: SubKind.Value,
   exp: Long,
   name: String,
-  given_name: String,
-  family_name: String,
+  given_name: Option[String],
+  family_name: Option[String],
   permissions: Set[Permission]
 )
 

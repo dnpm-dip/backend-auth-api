@@ -6,7 +6,7 @@
 
 name         := "auth-api"
 ThisBuild / organization := "de.dnpm.dip"
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.13"
 ThisBuild / version      := "1.0-SNAPSHOT"
 
 
@@ -66,6 +66,7 @@ lazy val standalone_authup_client = project
     name := "standalone-authup-client",
     settings,
     libraryDependencies ++= Seq(
+      dependencies.scala_xml,
       dependencies.scalatest_play,
       dependencies.play_standalone_ws,
       dependencies.play_standalone_json,
@@ -81,14 +82,15 @@ lazy val standalone_authup_client = project
 
 lazy val dependencies =
   new {
+    val scala_xml            = "org.scala-lang.modules" %% "scala-xml"               % "2.2.0"
     val scalatest            = "org.scalatest"          %% "scalatest"               % "3.1.1" % Test
     val scalatest_play       = "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.1" % Test
-    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.0-SNAPSHOT"
     val play                 = "com.typesafe.play"      %% "play"                    % "2.9.1"
     val play_ws              = "com.typesafe.play"      %% "play-ws"                 % "2.9.1"
     val play_standalone_ws   = "com.typesafe.play"      %% "play-ahc-ws-standalone"  % "2.2.5"
     val play_standalone_json = "com.typesafe.play"      %% "play-ws-standalone-json" % "2.2.5"
 //    val guice                = "com.google.inject"      %  "guice"                   % "7.0.0"
+    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.0-SNAPSHOT"
     val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.0-SNAPSHOT" % Test
     val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.0-SNAPSHOT" % Test
   }
