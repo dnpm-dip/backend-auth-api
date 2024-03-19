@@ -65,7 +65,6 @@ object Config extends Logging
    * </Config>
    */
   
-
   private def parseXML(in: InputStream): Config = {
 
     val xml =
@@ -87,8 +86,7 @@ object Config extends Logging
 
   lazy val instance: Try[Config] = {
 
-    val configFileProp =
-      "dnpm.dip.authup.config.file"
+    val configFileProp = "dnpm.dip.config.file"
 
     Using(new FileInputStream(System.getProperty(configFileProp)))(
       parseXML
