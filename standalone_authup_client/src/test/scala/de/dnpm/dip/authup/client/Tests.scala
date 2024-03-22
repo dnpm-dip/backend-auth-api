@@ -18,13 +18,10 @@ import de.dnpm.dip.auth.api.UserAuthenticationService
  *  an instance of the Authup backend running on localhost:3001
  */
 
-
 class Tests extends AsyncFlatSpec
 {
 
-  System.setProperty("dnpm.dip.authup.baseurl","http://localhost:3001")
-  System.setProperty("dnpm.dip.authup.admin.username","admin")
-  System.setProperty("dnpm.dip.authup.admin.password","start123")
+  System.setProperty("dnpm.dip.authup.url","robot://system:start123@http://localhost:3001")
 
 
   private val service =
@@ -39,7 +36,7 @@ class Tests extends AsyncFlatSpec
   }
 
 
-  "Authentication of a request without Bearer Token" must "of have failed" in {
+  "Authentication of a request without Bearer Token" must "have failed" in {
 
      service.authenticate(FakeRequest()).map {
        case Left(result) => result.header.status mustBe 401

@@ -32,7 +32,8 @@ import play.api.mvc.{
 }
 import play.api.mvc.ControllerHelpers.{
   AUTHORIZATION,
-  Unauthorized
+  OK,
+  Unauthorized,
 }
 import akka.actor.ActorSystem
 import akka.stream.Materializer
@@ -246,10 +247,16 @@ with Logging
   ): Future[String] =
     request("/token",None)
       .post(
-        toJsObject(credentials) + ("grant_type" -> JsString("password"))
+        credentials match {
+          case cr: RobotCredentials =>
+            toJsObject(credentials) + ("grant_type" -> JsString("robot_credentials"))
+
+          case cr: UserCredentials  =>
+            toJsObject(credentials) + ("grant_type" -> JsString("password"))
+        }
       )
       .collect {
-        case resp if resp.status == 200 =>
+        case resp if resp.status == OK =>
           s"Bearer ${(resp.body[JsValue] \ "access_token").as[String]}"
       }
       .andThen { 
