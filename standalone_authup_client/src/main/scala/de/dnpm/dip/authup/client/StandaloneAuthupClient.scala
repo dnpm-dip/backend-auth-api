@@ -359,8 +359,7 @@ with Logging
               Future.traverse(
                 Permissions
                   .getAll
-                  .map(_.name)
-                  .map(Permission(_))
+                  .map(p => Permission(p.name,p.description))
               )(
                 createOrGet(_,token)
               )
@@ -376,7 +375,7 @@ with Logging
               )(
                 role =>
                   createOrGet(
-                    Role(role.name),
+                    Role(role.name,role.description),
                     role.permissions
                       .map(_.name)
                       .flatMap(permissionIdsByName.get),

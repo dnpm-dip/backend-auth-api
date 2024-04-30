@@ -48,7 +48,8 @@ object CreatedRole
 
 final case class Permission
 (
-  name: String
+  name: String,
+  description: Option[String] = None
 )
 
 object Permission
@@ -59,7 +60,8 @@ object Permission
 
 final case class Role
 (
-  name: String
+  name: String,
+  description: Option[String] = None
 )
 
 object Role
