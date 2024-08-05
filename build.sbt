@@ -89,7 +89,6 @@ lazy val dependencies =
     val play_ws              = "com.typesafe.play"      %% "play-ws"                 % "2.9.1"
     val play_standalone_ws   = "com.typesafe.play"      %% "play-ahc-ws-standalone"  % "2.2.5"
     val play_standalone_json = "com.typesafe.play"      %% "play-ws-standalone-json" % "2.2.5"
-//    val guice                = "com.google.inject"      %  "guice"                   % "7.0.0"
     val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.0-SNAPSHOT"
     val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.0-SNAPSHOT" % Test
     val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.0-SNAPSHOT" % Test

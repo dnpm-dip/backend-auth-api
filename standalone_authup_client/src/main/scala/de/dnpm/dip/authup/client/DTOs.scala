@@ -49,18 +49,20 @@ object CreatedRole
 final case class Permission
 (
   name: String,
+  display_name: String,
   description: Option[String] = None
 )
 
 object Permission
 {
-  implicit val Format: OFormat[Permission] =
+  implicit val format: OFormat[Permission] =
     Json.format[Permission]
 }
 
 final case class Role
 (
   name: String,
+  display_name: String,
   description: Option[String] = None
 )
 

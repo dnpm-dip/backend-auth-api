@@ -66,7 +66,6 @@ import de.dnpm.dip.service.auth.{
   Permissions,
   Roles
 }
-//import com.google.inject.AbstractModule
 
 
 
@@ -75,16 +74,6 @@ class StandaloneAuthupClientSPI extends UserAuthenticationSPI
   override def getInstance: UserAuthenticationService =
     StandaloneAuthupClient.instance
 }
-
-
-/*
-class GuiceModule extends AbstractModule
-{
-  override def configure = 
-    bind(classOf[UserAuthenticationService])
-      .to(classOf[StandaloneAuthupClient])
-}
-*/
 
 
 object StandaloneAuthupClient
@@ -273,19 +262,11 @@ with Logging
 
     log.debug(s"Setting up permission '${permission.name}'")
 
-    request("/permissions",Some(token))
-     .post(toJson(permission))
-     .flatMap {
-       resp =>
-         resp.status match {
-           case 201 =>
-             Future.successful(resp.body[JsValue].as[CreatedPermission])
-           case 409 =>
-             request("/permissions",Some(token))
-               .withQueryStringParameters("filter[name]" -> permission.name)
-               .get()
-               .map(r => (r.body[JsValue] \ "data" \ 0).as[CreatedPermission])
-         }
+    request(s"/permissions/${permission.name}",Some(token))
+     .put(toJson(permission))
+     .collect {
+       case resp if resp.status == 201 || resp.status == 202 =>
+         resp.body[JsValue].as[CreatedPermission]
      }  
   }
 
@@ -302,19 +283,11 @@ with Logging
 
     for {
       createdRole <-
-        request("/roles",Some(token))
-         .post(toJson(role))
-         .flatMap {
-           resp =>
-             resp.status match {
-               case 201 =>
-                 Future.successful(resp.body[JsValue].as[CreatedRole])
-               case 409 =>
-                 request("/roles",Some(token))
-                   .withQueryStringParameters("filter[name]" -> role.name)
-                   .get()
-                   .map(r => (r.body[JsValue] \ "data" \ 0).as[CreatedRole])
-             }
+        request(s"/roles/${role.name}",Some(token))
+         .put(toJson(role))
+         .collect {
+            case resp if resp.status == 201 || resp.status == 202 =>
+              resp.body[JsValue].as[CreatedRole]
          }
 
        rolePermissions <-
@@ -330,12 +303,9 @@ with Logging
              rolePermission =>
                request("/role-permissions",Some(token))
                  .post(toJson(rolePermission))
-                 .map(
-                   resp =>
-                     resp.status match {
-                       case 201 | 409 => true
-                     }
-                 )
+                 .collect {
+                   case resp if resp.status == 201 || resp.status == 409 => true
+                 }
            )
 
     } yield createdRole
@@ -357,11 +327,17 @@ with Logging
         
             permissions <-
               Future.traverse(
-                Permissions
-                  .getAll
-                  .map(p => Permission(p.name,p.description))
+                Permissions.getAll
               )(
-                createOrGet(_,token)
+                perm =>
+                  createOrGet(
+                    Permission(
+                      perm.name,
+                      perm.display,
+                      perm.description
+                    ),
+                    token
+                  )
               )
 
             permissionIdsByName =
@@ -375,7 +351,11 @@ with Logging
               )(
                 role =>
                   createOrGet(
-                    Role(role.name,role.description),
+                    Role(
+                      role.name,
+                      role.display,
+                      role.description
+                    ),
                     role.permissions
                       .map(_.name)
                       .flatMap(permissionIdsByName.get),
