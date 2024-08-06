@@ -333,7 +333,7 @@ with Logging
                   createOrGet(
                     Permission(
                       perm.name,
-                      perm.display,
+                      Some(perm.display),
                       perm.description
                     ),
                     token

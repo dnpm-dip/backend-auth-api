@@ -49,7 +49,7 @@ object CreatedRole
 final case class Permission
 (
   name: String,
-  display_name: String,
+  display_name: Option[String],
   description: Option[String] = None
 )
 
