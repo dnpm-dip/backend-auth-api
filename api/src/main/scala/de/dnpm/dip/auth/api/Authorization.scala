@@ -38,7 +38,7 @@ object Authorization
     check: Agent => Option[Result]
   )(
     implicit ec: ExecutionContext
-  ): ActionFilter[Authenticated[Agent]#Request] =
+  ): Authorization[Agent] =
     new ActionFilter[Authenticated[Agent]#Request]{
 
       override val executionContext = ec
@@ -46,12 +46,12 @@ object Authorization
       override def filter[T](request: AuthenticatedRequest[Agent,T]): Future[Option[Result]] =
         Future.successful(check(request.agent))
     }
-
+ 
   def async[Agent](
     check: Agent => Future[Option[Result]]
   )(
     implicit ec: ExecutionContext
-  ): ActionFilter[Authenticated[Agent]#Request] =
+  ): Authorization[Agent] =
     new ActionFilter[Authenticated[Agent]#Request]{
 
       override val executionContext = ec
@@ -66,7 +66,7 @@ object Authorization
     ifUnauthorized: => Result = Forbidden
   )(
     implicit ec: ExecutionContext
-  ): ActionFilter[Authenticated[Agent]#Request] =
+  ): Authorization[Agent] =
     Authorization[Agent](
       agent => check(agent) match {
         case true  => None
@@ -80,7 +80,7 @@ object Authorization
     ifUnauthorized: => Result = Forbidden
   )(
     implicit ec: ExecutionContext
-  ): ActionFilter[Authenticated[Agent]#Request] =
+  ): Authorization[Agent] =
     Authorization.async[Agent](
       check(_).map {
         case true  => None
@@ -101,7 +101,8 @@ trait AuthorizationOps[Agent] extends AuthenticationOps[Agent]
     bodyParser: BodyParser[T]
   )(
     auth: Authorization[Agent],
-    auths: Authorization[Agent]*
+//    auths: Authorization[Agent]*
+    auths: ActionFunction[Authenticated[Agent]#Request,Authenticated[Agent]#Request]*
   )(
     implicit
     ec: ExecutionContext,
@@ -113,7 +114,8 @@ trait AuthorizationOps[Agent] extends AuthenticationOps[Agent]
 
   def AuthorizedAction(
     auth: Authorization[Agent],
-    auths: Authorization[Agent]*
+//    auths: Authorization[Agent]*
+    auths: ActionFunction[Authenticated[Agent]#Request,Authenticated[Agent]#Request]*
   )(
     implicit
     ec: ExecutionContext,

@@ -13,6 +13,6 @@ private [api] type Authenticated[Agent] =
 
 
 type Authorization[Agent] =
-  ActionFunction[Authenticated[Agent]#Request,Authenticated[Agent]#Request]
+  ActionFilter[Authenticated[Agent]#Request]
 
 }
