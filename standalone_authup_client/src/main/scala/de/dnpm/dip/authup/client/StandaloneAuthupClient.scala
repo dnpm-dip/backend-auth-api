@@ -218,7 +218,7 @@ with Logging
          } yield result.map(_.mapTo[UserPermissions])
          
        case None =>
-         Future.successful(Unauthorized("Unauthorized").asLeft)
+         Future.successful(Unauthorized.asLeft)
 
      }
 
