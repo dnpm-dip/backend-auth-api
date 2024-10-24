@@ -167,7 +167,7 @@ with Logging
       .map(
         resp =>
           resp.status match {
-            case 200 => resp.body[JsValue].as[TokenIntrospection].asRight
+            case 200 => resp.body[JsValue].as[TokenIntrospection].asRight // if active
             case _   => result(resp).asLeft
           }
       )
@@ -178,7 +178,7 @@ with Logging
         case Failure(t) =>  
           log.error(s"Token introspection failed",t)
       }
- 
+
      
   override def authenticate(
     req: RequestHeader
@@ -192,33 +192,33 @@ with Logging
          for {
            result <-
              cache.get(token) match {
-               case Some(tknInfo) =>
-                 Future.successful(tknInfo.asRight)
-             
+               case Some(tknIntro) =>
+                 Future.successful(
+                   if (tknIntro.active) tknIntro.asRight
+                   else Unauthorized.asLeft
+                 )
                case None =>
                  introspect(token)
                    .andThen { 
-                     case Success(Right(tknInfo)) =>
-                       cache += token -> tknInfo
+                     case Success(Right(tknIntro)) =>
+                       cache += token -> tknIntro
 
                        // schedule auto-removal of token from cache at expiration time
                        executor.schedule(
                          () => cache -= token,
-                         SECS.between(
-                           Instant.now,
-                           Instant.ofEpochSecond(tknInfo.exp)
-                         ),
+                         60,
                          SECONDS
                        )
                    }
+                   .map(
+                     _.filterOrElse(_.active,Unauthorized)
+                   )
              }
 
          } yield result.map(_.mapTo[UserPermissions])
          
        case None =>
-         Future.successful(
-           Unauthorized("Unauthorized").asLeft
-         )
+         Future.successful(Unauthorized("Unauthorized").asLeft)
 
      }
 

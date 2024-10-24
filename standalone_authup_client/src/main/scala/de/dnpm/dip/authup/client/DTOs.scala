@@ -90,6 +90,7 @@ final case class TokenIntrospection
 (
   sub: String,
   sub_kind: SubKind.Value,
+  active: Boolean,
   exp: Long,
   name: String,
   given_name: Option[String],
