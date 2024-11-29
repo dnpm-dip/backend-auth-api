@@ -12,11 +12,7 @@ import play.api.mvc.{
   ControllerHelpers,
   Result
 }
-import ControllerHelpers.{
-  Unauthorized,
-  Forbidden
-}
-
+import ControllerHelpers.Forbidden
 
 
 /*

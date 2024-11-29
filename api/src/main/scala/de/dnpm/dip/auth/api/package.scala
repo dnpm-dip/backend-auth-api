@@ -1,10 +1,8 @@
 package de.dnpm.dip.auth
 package object api {
 
-import play.api.mvc.{
-  ActionFilter,
-  ActionFunction
-}
+
+import play.api.mvc.ActionFilter
 
 
 // Helper type lambda 

@@ -1,12 +1,8 @@
 package de.dnpm.dip.authup.client
 
 
-
-import java.time.Instant
-import java.time.temporal.ChronoUnit.{SECONDS => SECS}
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.SECONDS
-import javax.inject.Inject
 import scala.concurrent.{
   Future,
   ExecutionContext
@@ -48,7 +44,6 @@ import play.api.libs.ws.JsonBodyReadables._
 import play.api.libs.ws.JsonBodyWritables._
 import play.api.libs.json.{
   JsString,
-  JsObject,
   JsValue
 }
 import play.api.libs.json.Json.{
@@ -237,10 +232,10 @@ with Logging
     request("/token",None)
       .post(
         credentials match {
-          case cr: RobotCredentials =>
+          case _: RobotCredentials =>
             toJsObject(credentials) + ("grant_type" -> JsString("robot_credentials"))
 
-          case cr: UserCredentials  =>
+          case _: UserCredentials  =>
             toJsObject(credentials) + ("grant_type" -> JsString("password"))
         }
       )

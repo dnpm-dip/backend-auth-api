@@ -10,7 +10,6 @@ import scala.util.{
   Failure
 }
 import scala.util.chaining._
-import scala.util.matching.Regex
 import scala.util.Using
 import scala.xml.XML
 import play.api.libs.json.{

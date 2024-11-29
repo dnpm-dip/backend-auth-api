@@ -7,8 +7,6 @@ import scala.concurrent.{
   Future
 }
 import play.api.mvc.{
-  AnyContent,
-  Request,
   RequestHeader,
   Result
 }
