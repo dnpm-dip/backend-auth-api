@@ -285,7 +285,7 @@ with Logging
               resp.body[JsValue].as[CreatedRole]
          }
 
-       rolePermissions <-
+       _ <-
          Future.traverse(
              permissionIds.map(
                id =>
@@ -340,7 +340,7 @@ with Logging
                 .map(p => p.name -> p.id)
                 .toMap
         
-            roles <-
+            _ <-
               Future.traverse(
                 Roles.getAll
               )(
