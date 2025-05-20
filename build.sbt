@@ -23,7 +23,6 @@ lazy val global = project
   .aggregate(
      api,
      fake_auth_service,
-//     authup_client,
      standalone_authup_client
   )
 
@@ -50,16 +49,16 @@ lazy val fake_auth_service = project
   .dependsOn(api)
 
 
-lazy val authup_client = project
-  .settings(
-    name := "authup-client",
-    settings,
-    libraryDependencies ++= Seq(
-      dependencies.scalatest_play,
-      dependencies.play_ws,
-    )
-  )
-  .dependsOn(api)
+//lazy val authup_client = project
+//  .settings(
+//    name := "authup-client",
+//    settings,
+//    libraryDependencies ++= Seq(
+//      dependencies.scalatest_play,
+//      dependencies.play_ws,
+//    )
+//  )
+//  .dependsOn(api)
 
 lazy val standalone_authup_client = project
   .settings(
@@ -83,12 +82,12 @@ lazy val standalone_authup_client = project
 lazy val dependencies =
   new {
     val scala_xml            = "org.scala-lang.modules" %% "scala-xml"               % "2.2.0"
-    val scalatest            = "org.scalatest"          %% "scalatest"               % "3.1.1" % Test
+    val scalatest            = "org.scalatest"          %% "scalatest"               % "3.2.18" % Test
     val scalatest_play       = "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.1" % Test
-    val play                 = "com.typesafe.play"      %% "play"                    % "2.9.1"
-    val play_ws              = "com.typesafe.play"      %% "play-ws"                 % "2.9.1"
-    val play_standalone_ws   = "com.typesafe.play"      %% "play-ahc-ws-standalone"  % "2.2.5"
-    val play_standalone_json = "com.typesafe.play"      %% "play-ws-standalone-json" % "2.2.5"
+    val play                 = "org.playframework"      %% "play"                    % "3.0.7"
+    val play_ws              = "org.playframework"      %% "play-ws"                 % "3.0.7"
+    val play_standalone_ws   = "org.playframework"      %% "play-ahc-ws-standalone"  % "3.0.7"
+    val play_standalone_json = "org.playframework"      %% "play-ws-standalone-json" % "3.0.7"
     val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.0-SNAPSHOT"
     val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.0-SNAPSHOT" % Test
     val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.0-SNAPSHOT" % Test
