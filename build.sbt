@@ -1,13 +1,16 @@
+// build.sbt adapted from https://github.com/pbassiner/sbt-multi-project-example/blob/master/build.sbt
 
-/*
- build.sbt adapted from https://github.com/pbassiner/sbt-multi-project-example/blob/master/build.sbt
-*/
+import scala.util.Properties.envOrElse
 
 
 name         := "auth-api"
 ThisBuild / organization := "de.dnpm.dip"
 ThisBuild / scalaVersion := "2.13.16"
-ThisBuild / version      := "1.0-SNAPSHOT"
+ThisBuild / version      := envOrElse("VERSION","1.0.0")
+
+val ownerRepo  = envOrElse("REPOSITORY","dnpm-dip/backend-auth-api").split("/")
+ThisBuild / githubOwner      := ownerRepo(0)
+ThisBuild / githubRepository := ownerRepo(1)
 
 
 //-----------------------------------------------------------------------------
@@ -48,7 +51,6 @@ lazy val fake_auth_service = project
   )
   .dependsOn(api)
 
-
 //lazy val authup_client = project
 //  .settings(
 //    name := "authup-client",
@@ -88,9 +90,9 @@ lazy val dependencies =
     val play_ws              = "org.playframework"      %% "play-ws"                 % "3.0.7"
     val play_standalone_ws   = "org.playframework"      %% "play-ahc-ws-standalone"  % "3.0.7"
     val play_standalone_json = "org.playframework"      %% "play-ws-standalone-json" % "3.0.7"
-    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.0-SNAPSHOT"
-    val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.0-SNAPSHOT" % Test
-    val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.0-SNAPSHOT" % Test
+    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.0.0"
+    val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.0.0" % Test
+    val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.0.0" % Test
   }
 
 
@@ -144,17 +146,15 @@ lazy val compilerOptions = Seq(
   "-Wunused:privates",
   "-Wunused:implicits",
   "-Wvalue-discard",
-
-  // Deactivated to avoid many false positives from 'evidence' parameters in context bounds
-//  "-Wunused:params",
 )
 
 lazy val commonSettings = Seq(
   scalacOptions ++= compilerOptions,
-  resolvers ++=
-    Seq("Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository") ++
-      Resolver.sonatypeOssRepos("releases") ++
-      Resolver.sonatypeOssRepos("snapshots")
-  
+  resolvers ++= Seq(
+    "Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository",
+    Resolver.githubPackages("dnpm-dip"),
+    Resolver.githubPackages("KohlbacherLab"),
+    Resolver.sonatypeCentralSnapshots
+  )
 )
 

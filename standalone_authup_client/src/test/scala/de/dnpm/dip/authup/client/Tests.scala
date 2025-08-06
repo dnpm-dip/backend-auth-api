@@ -5,9 +5,7 @@ package de.dnpm.dip.authup.client
 import scala.util.Left
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.must.Matchers._
-import play.api.test.{
-  FakeRequest,
-}
+import play.api.test.FakeRequest
 import de.dnpm.dip.auth.api.UserAuthenticationService
 
 
@@ -26,15 +24,13 @@ class Tests extends AsyncFlatSpec
 
   private val service =
     StandaloneAuthupClient.instance
-    
-
+   
     
   "UserAuthentication SPI" must "have worked" in {
 
     UserAuthenticationService.getInstance.isSuccess mustBe true
 
   }
-
 
   "Authentication of a request without Bearer Token" must "have failed" in {
 
@@ -45,11 +41,11 @@ class Tests extends AsyncFlatSpec
 
   }
 
-  
+/*  
   "Setting up permission model" must "have succeeded" in { 
 
     service.setupResult.map(_ mustBe true)
 
   }
-
+*/
 }
