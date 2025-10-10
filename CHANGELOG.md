@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/dnpm-dip/backend-auth-api/compare/v1.0.0...v1.1.0) (2025-10-10)
+
+
+### Features
+
+* Upgraded dependency versions ([5e11232](https://github.com/dnpm-dip/backend-auth-api/commit/5e11232d416d767ad50cf6b46e66a1fa9112ab0b))
+
 ## 1.0.0 (2025-08-06)
 
 
