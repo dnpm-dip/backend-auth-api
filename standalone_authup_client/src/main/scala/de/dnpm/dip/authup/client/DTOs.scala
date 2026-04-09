@@ -9,11 +9,10 @@ import play.api.libs.json.{
 }
 
 
-object SubKind extends Enumeration
+object SubjectKind extends Enumeration
 {
   val Client = Value("client")
   val User   = Value("user")
-  val Robot  = Value("robot")
 
   implicit val format: Format[Value] =
     Json.formatEnum(this)
@@ -50,6 +49,7 @@ final case class Permission
 (
   name: String,
   display_name: Option[String],
+  realm_id: Option[String] = None,
   description: Option[String] = None
 )
 
@@ -63,6 +63,7 @@ final case class Role
 (
   name: String,
   display_name: String,
+  realm_id: Option[String] = None,
   description: Option[String] = None
 )
 
@@ -89,7 +90,7 @@ object RolePermission
 final case class TokenIntrospection
 (
   sub: String,
-  sub_kind: SubKind.Value,
+  sub_kind: SubjectKind.Value,
   active: Boolean,
   exp: Long,
   name: String,

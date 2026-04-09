@@ -227,11 +227,21 @@ with Logging
   ): Future[String] =
     request("/token",None)
       .post(
-        Json.obj(
-          "grant_type"    -> "client_credentials",
-          "client_id"     -> credentials.id,
-          "client_secret" -> credentials.secret
-        )
+        credentials.kind match {
+          case SubjectKind.Client =>
+            Json.obj(
+              "grant_type"    -> "client_credentials",
+              "client_id"     -> credentials.id,
+              "client_secret" -> credentials.secret
+            )
+
+          case SubjectKind.User =>
+            Json.obj(
+              "grant_type" -> "password",
+              "username"   -> credentials.id,
+              "password"   -> credentials.secret
+            )
+        }
       )
       .collect {
         case resp if resp.status == OK =>

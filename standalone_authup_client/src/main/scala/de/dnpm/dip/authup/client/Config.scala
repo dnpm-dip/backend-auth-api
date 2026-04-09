@@ -18,6 +18,7 @@ import de.dnpm.dip.util.Logging
 
 final case class Credentials
 (
+  kind: SubjectKind.Value,
   id: String,
   secret: String
 )
@@ -44,21 +45,25 @@ object Config extends Logging
   { 
    
     val urlRegex =
-      raw"((user|robot|client):\/\/)?((\w+):(.+)@)?(.+)".r
+      raw"((client|user):\/\/)?((\w+):(.+)@)?(.+)".r
 
     def from(url: String): Impl = {
       url match {
-        case urlRegex(_,_,_,id,secret,host) =>
+        case urlRegex(_,kind,_,id,secret,host) =>
           Impl(
             host,
-            for { 
+            for {
               id     <- Option(id)
               secret <- Option(secret)
-            } yield Credentials(id,secret)
+            } yield Credentials(
+              Option(kind).map(SubjectKind.withName).getOrElse(SubjectKind.Client),
+              id,
+              secret
+            )
           )
 
         case _ =>  
-          s"Missing or ill-formated Authup URL '$url', expected format [[{user|robot|client}://]<id>:<secret>]@<host>"
+          s"Missing or ill-formated Authup URL, expected format [[{user|client}://]<id>:<secret>]@<host>"
             .tap(log.error)
             .pipe(msg => throw new IllegalArgumentException(msg))
       }
