@@ -49,7 +49,6 @@ final case class Permission
 (
   name: String,
   display_name: Option[String],
-  realm_id: Option[String] = None,
   description: Option[String] = None
 )
 
@@ -63,7 +62,6 @@ final case class Role
 (
   name: String,
   display_name: String,
-  realm_id: Option[String] = None,
   description: Option[String] = None
 )
 
