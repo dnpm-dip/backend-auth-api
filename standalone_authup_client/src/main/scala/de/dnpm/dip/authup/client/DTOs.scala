@@ -12,6 +12,7 @@ import play.api.libs.json.{
 object SubjectKind extends Enumeration
 {
   val Client = Value("client")
+  val Robot  = Value("robot")
   val User   = Value("user")
 
   implicit val format: Format[Value] =

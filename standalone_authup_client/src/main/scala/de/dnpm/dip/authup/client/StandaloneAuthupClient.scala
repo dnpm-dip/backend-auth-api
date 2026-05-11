@@ -235,6 +235,13 @@ with Logging
               "client_secret" -> credentials.secret
             )
 
+          case SubjectKind.Robot =>
+            Json.obj(
+              "grant_type" -> "robot_credentials",
+              "id"         -> credentials.id,
+              "secret"     -> credentials.secret
+            )
+
           case SubjectKind.User =>
             Json.obj(
               "grant_type" -> "password",
