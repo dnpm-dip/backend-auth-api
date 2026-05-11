@@ -63,7 +63,7 @@ object Config extends Logging
           )
 
         case _ =>  
-          s"Missing or ill-formated Authup URL, expected format [[{user|robot|client}://]<id>:<secret>]@<host>"
+          s"Missing or ill-formatted Authup URL, expected format [[{user|robot|client}://]<id>:<secret>]@<host>"
             .tap(log.error)
             .pipe(msg => throw new IllegalArgumentException(msg))
       }
