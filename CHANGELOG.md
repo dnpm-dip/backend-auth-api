@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/dnpm-dip/backend-auth-api/compare/v1.1.0...v1.1.1) (2026-05-11)
+
+
+### Bug Fixes
+
+* Incorporate suggested adaptations to Authup ([#5](https://github.com/dnpm-dip/backend-auth-api/issues/5)) ([8a4dc7e](https://github.com/dnpm-dip/backend-auth-api/commit/8a4dc7e92ef54c0987f3f65cc5d3c468d687036d))
+
 ## [1.1.0](https://github.com/dnpm-dip/backend-auth-api/compare/v1.0.0...v1.1.0) (2025-10-10)
 
 
