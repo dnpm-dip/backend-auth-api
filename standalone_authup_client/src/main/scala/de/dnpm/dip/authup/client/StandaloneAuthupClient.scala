@@ -380,7 +380,7 @@ with Logging
         }
 
       case None =>
-        log.warn("Undefined admin credentials, can't create permission/role model")
+        log.warn("Undefined credentials, can't create permission/role model")
         Future.successful(false)  
 
     }
