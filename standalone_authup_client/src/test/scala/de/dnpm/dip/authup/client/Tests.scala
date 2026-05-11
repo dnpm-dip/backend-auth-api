@@ -19,7 +19,7 @@ import de.dnpm.dip.auth.api.UserAuthenticationService
 class Tests extends AsyncFlatSpec
 {
 
-  System.setProperty("dnpm.dip.authup.url","robot://system:start123@http://localhost:3001")
+  System.setProperty("dnpm.dip.authup.url","client://system:start123@http://localhost:3001")
 
 
   private val service =

@@ -7,56 +7,26 @@ import java.io.{
 }
 import scala.util.{
   Try,
-  Failure
+  Failure,
+  Properties
 }
 import scala.util.chaining._
 import scala.util.Using
 import scala.xml.XML
-import play.api.libs.json.{
-  Json,
-  OWrites
-}
 import de.dnpm.dip.util.Logging
 
 
-sealed abstract class Credentials
-
-final case class UserCredentials
+final case class Credentials
 (
-  username: String,
-  password: String
-)
-extends Credentials
-
-final case class RobotCredentials
-(
+  kind: SubjectKind.Value,
   id: String,
   secret: String
 )
-extends Credentials
-
-object Credentials
-{
-
-  implicit val writesUserCredentials: OWrites[UserCredentials] =
-    Json.writes[UserCredentials]
-
-  implicit val writesRobotCredentials: OWrites[RobotCredentials] =
-    Json.writes[RobotCredentials]
-
-  implicit val writes: OWrites[Credentials] =
-    OWrites {
-      case cr: RobotCredentials => Json.toJsObject(cr) 
-      case cr: UserCredentials  => Json.toJsObject(cr) 
-    }
-
-}
-
 
 trait Config
 {
   def baseUrl: String
-  def adminCredentials: Option[Credentials]
+  def credentials: Option[Credentials]
 }
 
 
@@ -66,7 +36,7 @@ object Config extends Logging
   private final case class Impl
   (
     baseUrl: String,
-    adminCredentials: Option[Credentials]
+    credentials: Option[Credentials]
   )
   extends Config
 
@@ -75,27 +45,25 @@ object Config extends Logging
   { 
    
     val urlRegex =
-      raw"((user|robot):\/\/)?((\w+):(.+)@)?(.+)".r
+      raw"((client|robot|user):\/\/)?((\w+):(.+)@)?(.+)".r
 
     def from(url: String): Impl = {
       url match {
-        case urlRegex(_,typ,_,id,secret,host) =>
+        case urlRegex(_,kind,_,id,secret,host) =>
           Impl(
             host,
-            for { 
-              typ    <- Option(typ).orElse(Some("robot"))
+            for {
               id     <- Option(id)
               secret <- Option(secret)
-            } yield { 
-              typ match {
-                case "robot" => RobotCredentials(id,secret)
-                case "user"  => UserCredentials(id,secret)
-              }
-            } 
+            } yield Credentials(
+              Option(kind).map(SubjectKind.withName).getOrElse(SubjectKind.Client),
+              id,
+              secret
+            )
           )
 
         case _ =>  
-          s"Missing or ill-formated Authup URL '$url', expected format [[{user|robot}://]<id>:<secret>]@<host>"
+          s"Missing or ill-formatted Authup URL, expected format [[{user|robot|client}://]<id>:<secret>]@<host>"
             .tap(log.error)
             .pipe(msg => throw new IllegalArgumentException(msg))
       }
@@ -121,15 +89,16 @@ object Config extends Logging
 
   lazy val instance: Try[Config] = {
 
+    val urlEnv         = "AUTHUP_URL"
     val urlProp        = "dnpm.dip.authup.url"
     val configFileProp = "dnpm.dip.config.file"
 
     Try {
-      Impl.from(System.getProperty(urlProp))
+      Impl.from(Properties.envOrElse(urlEnv,Properties.propOrNull(urlProp)))
     }
     .recoverWith {
       case t =>
-        log.warn(s"Couldn't load Authup client config from system property '$urlProp'",t)
+        log.warn(s"Couldn't load Authup client config from ENV variable '$urlEnv' or system property '$urlProp'",t)
         log.warn(s"Attempting fallback setup path via config file '$configFileProp'")
     
         Using(new FileInputStream(System.getProperty(configFileProp)))(
@@ -144,33 +113,4 @@ object Config extends Logging
 
   }
 
-/*
-  lazy val instance: Try[Config] = {
-
-    val configFileProp =
-      "dnpm.dip.config.file"
-
-    Using(new FileInputStream(System.getProperty(configFileProp)))(
-      Impl.fromXML
-    )
-    .recoverWith {
-      case t =>
-        val urlProp = "dnpm.dip.authup.url"
-
-        log.warn(s"Couldn't load Authup client config, most likely due to undefined System property $configFileProp",t)
-        log.warn(s"Attempting fallback setup path via system property $urlProp")
-
-        Try {
-          Option(System.getProperty(urlProp)).get
-        }
-        .map(Impl.from)
-    }
-    .recoverWith {
-      case t => 
-        log.error(s"Couldn't load Authup client config",t)
-        Failure(t)
-    }
-
-  }
-*/
 }

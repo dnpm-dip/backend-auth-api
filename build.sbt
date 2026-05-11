@@ -5,7 +5,7 @@ import scala.util.Properties.envOrElse
 
 name         := "auth-api"
 ThisBuild / organization := "de.dnpm.dip"
-ThisBuild / scalaVersion := "2.13.16"
+ThisBuild / scalaVersion := "2.13.18"
 ThisBuild / version      := envOrElse("VERSION","1.1.0")
 
 val ownerRepo  = envOrElse("REPOSITORY","dnpm-dip/backend-auth-api").split("/")
@@ -80,9 +80,9 @@ lazy val dependencies =
     val play_ws              = "org.playframework"      %% "play-ws"                 % "3.0.7"
     val play_standalone_ws   = "org.playframework"      %% "play-ahc-ws-standalone"  % "3.0.7"
     val play_standalone_json = "org.playframework"      %% "play-ws-standalone-json" % "3.0.7"
-    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.1.0"
-    val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.1.0" % Test
-    val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.1.0" % Test
+    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.3.1"
+    val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.1.3" % Test
+    val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.1.4" % Test
   }
 
 

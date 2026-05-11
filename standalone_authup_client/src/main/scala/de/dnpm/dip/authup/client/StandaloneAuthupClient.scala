@@ -43,12 +43,8 @@ import play.api.libs.ws.{
 import play.api.libs.ws.JsonBodyReadables._
 import play.api.libs.ws.JsonBodyWritables._
 import play.api.libs.json.{
-  JsString,
-  JsValue
-}
-import play.api.libs.json.Json.{
-  toJson,
-  toJsObject
+  JsValue,
+  Json
 }
 import de.dnpm.dip.util.Logging
 import de.dnpm.dip.util.mapping.syntax._
@@ -231,12 +227,27 @@ with Logging
   ): Future[String] =
     request("/token",None)
       .post(
-        credentials match {
-          case _: RobotCredentials =>
-            toJsObject(credentials) + ("grant_type" -> JsString("robot_credentials"))
+        credentials.kind match {
+          case SubjectKind.Client =>
+            Json.obj(
+              "grant_type"    -> "client_credentials",
+              "client_id"     -> credentials.id,
+              "client_secret" -> credentials.secret
+            )
 
-          case _: UserCredentials  =>
-            toJsObject(credentials) + ("grant_type" -> JsString("password"))
+          case SubjectKind.Robot =>
+            Json.obj(
+              "grant_type" -> "robot_credentials",
+              "id"         -> credentials.id,
+              "secret"     -> credentials.secret
+            )
+
+          case SubjectKind.User =>
+            Json.obj(
+              "grant_type" -> "password",
+              "username"   -> credentials.id,
+              "password"   -> credentials.secret
+            )
         }
       )
       .collect {
@@ -258,7 +269,7 @@ with Logging
     log.debug(s"Setting up permission '${permission.name}'")
 
     request(s"/permissions/${permission.name}",Some(token))
-     .put(toJson(permission))
+     .put(Json.toJson(permission))
      .collect {
        case resp if resp.status == 201 || resp.status == 202 =>
          resp.body[JsValue].as[CreatedPermission]
@@ -279,7 +290,7 @@ with Logging
     for {
       createdRole <-
         request(s"/roles/${role.name}",Some(token))
-         .put(toJson(role))
+         .put(Json.toJson(role))
          .collect {
             case resp if resp.status == 201 || resp.status == 202 =>
               resp.body[JsValue].as[CreatedRole]
@@ -297,7 +308,7 @@ with Logging
            )(
              rolePermission =>
                request("/role-permissions",Some(token))
-                 .post(toJson(rolePermission))
+                 .post(Json.toJson(rolePermission))
                  .collect {
                    case resp if resp.status == 201 || resp.status == 409 => true
                  }
@@ -311,7 +322,7 @@ with Logging
   override def setupPermissionModel(
     implicit ec: ExecutionContext
   ): Future[Boolean] = 
-    config.adminCredentials match {
+    config.credentials match {
 
       case Some(credentials) =>
         {
@@ -369,7 +380,7 @@ with Logging
         }
 
       case None =>
-        log.warn("Undefined admin credentials, can't create permission/role model")
+        log.warn("Undefined credentials, can't create permission/role model")
         Future.successful(false)  
 
     }
