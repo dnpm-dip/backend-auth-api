@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/dnpm-dip/backend-auth-api/compare/v1.1.1...v1.1.2) (2026-06-09)
+
+
+### Bug Fixes
+
+* Bump scalatest to 3.2.20, scalatestplus-play to 7.0.2, play* to 3.0.11, service-base to 1.4.0 ([a81b88c](https://github.com/dnpm-dip/backend-auth-api/commit/a81b88cdcfdcf9fd156a0b0cf7be00f0ed5f3248))
+
 ## [1.1.1](https://github.com/dnpm-dip/backend-auth-api/compare/v1.1.0...v1.1.1) (2026-05-11)
 
 
