@@ -74,15 +74,15 @@ lazy val standalone_authup_client = project
 lazy val dependencies =
   new {
     val scala_xml            = "org.scala-lang.modules" %% "scala-xml"               % "2.2.0"
-    val scalatest            = "org.scalatest"          %% "scalatest"               % "3.2.18" % Test
-    val scalatest_play       = "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.1" % Test
-    val play                 = "org.playframework"      %% "play"                    % "3.0.7"
-    val play_ws              = "org.playframework"      %% "play-ws"                 % "3.0.7"
-    val play_standalone_ws   = "org.playframework"      %% "play-ahc-ws-standalone"  % "3.0.7"
-    val play_standalone_json = "org.playframework"      %% "play-ws-standalone-json" % "3.0.7"
-    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.3.1"
-    val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.1.3" % Test
-    val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.1.4" % Test
+    val scalatest            = "org.scalatest"          %% "scalatest"               % "3.2.20" % Test
+    val scalatest_play       = "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.2" % Test
+    val play                 = "org.playframework"      %% "play"                    % "3.0.11"
+    val play_ws              = "org.playframework"      %% "play-ws"                 % "3.0.11"
+    val play_standalone_ws   = "org.playframework"      %% "play-ahc-ws-standalone"  % "3.0.11"
+    val play_standalone_json = "org.playframework"      %% "play-ws-standalone-json" % "3.0.11"
+    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.4.0"
+    val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.1.4" % Test
+    val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.1.5" % Test
   }
 
 
