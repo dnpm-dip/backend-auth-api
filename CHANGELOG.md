@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/dnpm-dip/backend-auth-api/compare/v1.1.2...v1.1.3) (2026-08-12)
+
+
+### Bug Fixes
+
+* Bump service-base to 1.5.0 and test dependencies ([1a0877d](https://github.com/dnpm-dip/backend-auth-api/commit/1a0877d5cf19042cdd8a569e66ef3824e9790975))
+
 ## [1.1.2](https://github.com/dnpm-dip/backend-auth-api/compare/v1.1.1...v1.1.2) (2026-06-09)
 
 
