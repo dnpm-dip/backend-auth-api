@@ -80,9 +80,9 @@ lazy val dependencies =
     val play_ws              = "org.playframework"      %% "play-ws"                 % "3.0.11"
     val play_standalone_ws   = "org.playframework"      %% "play-ahc-ws-standalone"  % "3.0.11"
     val play_standalone_json = "org.playframework"      %% "play-ws-standalone-json" % "3.0.11"
-    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.4.0"
-    val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.1.4" % Test
-    val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.1.5" % Test
+    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.5.0"
+    val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.1.5" % Test
+    val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.1.6" % Test
   }
 
 
