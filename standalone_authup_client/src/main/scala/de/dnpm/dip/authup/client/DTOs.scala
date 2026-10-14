@@ -104,11 +104,22 @@ final case class TokenIntrospection
   name: String,
   given_name: Option[String],
   family_name: Option[String],
-  permissions: Set[Permission]
+  permissions: Set[TokenIntrospection.Permission]
 )
 
 object TokenIntrospection
 {
+
+  // Required because TokenIntrospection.permissions contains Permission with snake_case fields
+  final case class Permission
+  (
+    name: String,
+    display_name: Option[String],
+    description: Option[String] = None
+  )
+
+  implicit val readsPermission: Reads[TokenIntrospection.Permission] =
+    Json.reads[TokenIntrospection.Permission]
 
   implicit val reads: Reads[TokenIntrospection] =
     Json.reads[TokenIntrospection]
