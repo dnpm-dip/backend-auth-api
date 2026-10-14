@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/dnpm-dip/backend-auth-api/compare/v1.1.3...v1.1.4) (2026-10-14)
+
+
+### Bug Fixes
+
+* align Authup client with camelCase payloads and response envelope ([#10](https://github.com/dnpm-dip/backend-auth-api/issues/10)) ([38bed0b](https://github.com/dnpm-dip/backend-auth-api/commit/38bed0b4dbe446478670dcff5d7e2a2df0d53473))
+
 ## [1.1.3](https://github.com/dnpm-dip/backend-auth-api/compare/v1.1.2...v1.1.3) (2026-08-12)
 
 
