@@ -13,10 +13,9 @@ import scala.collection.concurrent.{
   TrieMap,
 }
 import scala.util.{
-  Left,
-  Right,
+  Failure,
   Success,
-  Failure
+  Try
 }
 import scala.util.chaining._
 import cats.syntax.either._
@@ -44,7 +43,8 @@ import play.api.libs.ws.JsonBodyReadables._
 import play.api.libs.ws.JsonBodyWritables._
 import play.api.libs.json.{
   JsValue,
-  Json
+  Json,
+  Reads
 }
 import de.dnpm.dip.util.Logging
 import de.dnpm.dip.util.mapping.syntax._
@@ -81,6 +81,7 @@ object StandaloneAuthupClient
 
   lazy val instance =
     new StandaloneAuthupClient(client)
+
 }
 
 
@@ -244,12 +245,31 @@ with Logging
         }
       )
       .collect {
-        case resp if resp.status == OK =>
-          s"Bearer ${(resp.body[JsValue] \ "access_token").as[String]}"
+        case resp if resp.status == OK => s"Bearer ${(resp.body[JsValue] \ "access_token").as[String]}"
       }
       .andThen { 
         case Success(_) => log.debug("Logged into Authup")
       }
+
+  
+  implicit class AuthupResponseOps(val authupResponse: AuthupResponse.type)
+  {
+     def data[T: Reads](
+       expected: Int => Boolean = Set(201,202),
+       onError: => String,
+     ): Try[WSResponse] => Try[T] = {
+     
+       case Success(resp) if expected(resp.status) =>
+         Try(resp.body[JsValue].as[AuthupResponse[T]].data)
+     
+       case Success(resp) =>
+         s"$onError: ${resp.status} ${resp.statusText}\n${resp.body}"
+           .tap(log.error)
+           .pipe(msg => Failure(new Exception(msg)))
+     
+       case Failure(t) => Failure(t)
+     }
+  }
 
 
   private def createOrGet(
@@ -263,10 +283,9 @@ with Logging
 
     request(s"/permissions/${permission.name}",Some(token))
      .put(Json.toJson(permission))
-     .collect {
-       case resp if resp.status == 201 || resp.status == 202 =>
-         (resp.body[JsValue] \ "data").as[CreatedPermission]
-     }  
+     .transform(
+       AuthupResponse.data[CreatedPermission](onError = s"Error setting up '${permission.name}'")
+     )
   }
 
 
@@ -278,34 +297,29 @@ with Logging
     implicit ec: ExecutionContext
   ): Future[CreatedRole] = {
 
-    log.debug(s"Setting up role '${role.name}'")
+    log.debug(s"Setting up Role '${role.name}'")
 
     for {
       createdRole <-
         request(s"/roles/${role.name}",Some(token))
          .put(Json.toJson(role))
-         .collect {
-            case resp if resp.status == 201 || resp.status == 202 =>
-              (resp.body[JsValue] \ "data").as[CreatedRole]
-         }
+         .transform(AuthupResponse.data[CreatedRole](onError = s"Error setting up Role '${role.name}'"))
 
-       _ <-
-         Future.traverse(
-             permissionIds.map(
-               id =>
-                 RolePermission(
-                   roleId       = createdRole.id,
-                   permissionId = id
-                 )
-             )
-           )(
-             rolePermission =>
-               request("/role-permissions",Some(token))
-                 .post(Json.toJson(rolePermission))
-                 .collect {
-                   case resp if resp.status == 201 || resp.status == 409 => true
-                 }
+       _ <- Future.traverse(
+         permissionIds.map(
+           id => RolePermission(
+             roleId       = createdRole.id,
+             permissionId = id
            )
+         )
+       )(
+         rolePermission =>
+           request("/role-permissions",Some(token))
+             .post(Json.toJson(rolePermission))
+             .collect {
+               case resp if resp.status == 201 || resp.status == 409 => true
+             }
+       )
 
     } yield createdRole
 
@@ -321,55 +335,41 @@ with Logging
         {
           log.info("Setting up permission/role model")
           for {
-            token <-
-              loginAuthup(credentials)
+            token <- loginAuthup(credentials)
         
-            permissions <-
-              Future.traverse(
-                Permissions.getAll
-              )(
-                perm =>
-                  createOrGet(
-                    Permission(
-                      perm.name,
-                      Some(perm.display),
-                      perm.description
-                    ),
-                    token
-                  )
+            permissions <- Future.traverse(Permissions.getAll)(
+              perm => createOrGet(
+                Permission(
+                  perm.name,
+                  Some(perm.display),
+                  perm.description
+                ),
+                token
               )
+            )
 
-            permissionIdsByName =
-              permissions
-                .map(p => p.name -> p.id)
-                .toMap
+            permissionIdsByName = permissions.map(p => p.name -> p.id).toMap
         
-            _ <-
-              Future.traverse(
-                Roles.getAll
-              )(
-                role =>
-                  createOrGet(
-                    Role(
-                      role.name,
-                      role.display,
-                      role.description
-                    ),
-                    role.permissions
-                      .map(_.name)
-                      .flatMap(permissionIdsByName.get),
-                    token
-                  )
-             )
+            _ <- Future.traverse(Roles.getAll)(
+              role => createOrGet(
+                Role(
+                  role.name,
+                  role.display,
+                  role.description
+                ),
+                role.permissions
+                  .map(_.name)
+                  .flatMap(permissionIdsByName.get),
+                token
+              )
+            )
               
           } yield true
         }
         .andThen { 
-          case Success(_) =>
-            log.info("Successfully set up permission/role model")
+          case Success(_) => log.info("Successfully set up permission/role model")
         
-          case Failure(t) =>
-            log.error("Error(s) occurred setting up permission/role model", t)
+          case Failure(t) => log.error("Error(s) occurred setting up permission/role model", t)
         }
 
       case None =>

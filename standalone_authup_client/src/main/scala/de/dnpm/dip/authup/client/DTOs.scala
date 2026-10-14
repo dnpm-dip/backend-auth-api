@@ -84,6 +84,16 @@ object RolePermission
 }
 
 
+final case class AuthupResponse[T]
+(
+  data: T
+)
+object AuthupResponse
+{
+  implicit def reads[T: Reads]: Reads[AuthupResponse[T]] =
+    Json.reads[AuthupResponse[T]]
+}
+
 
 final case class TokenIntrospection
 (
