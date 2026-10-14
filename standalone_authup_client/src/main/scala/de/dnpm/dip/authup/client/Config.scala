@@ -45,7 +45,7 @@ object Config extends Logging
   { 
    
     val urlRegex =
-      raw"((client|robot|user):\/\/)?((\w+):(.+)@)?(.+)".r
+      raw"((client|user):\/\/)?((\w+):(.+)@)?(.+)".r
 
     def from(url: String): Impl = {
       url match {
@@ -63,7 +63,7 @@ object Config extends Logging
           )
 
         case _ =>  
-          s"Missing or ill-formatted Authup URL, expected format [[{user|robot|client}://]<id>:<secret>]@<host>"
+          s"Missing or ill-formatted Authup URL, expected format [[{user|client}://]<id>:<secret>]@<host>"
             .tap(log.error)
             .pipe(msg => throw new IllegalArgumentException(msg))
       }

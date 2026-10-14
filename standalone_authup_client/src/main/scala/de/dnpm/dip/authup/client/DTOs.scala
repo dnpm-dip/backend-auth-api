@@ -12,7 +12,6 @@ import play.api.libs.json.{
 object SubjectKind extends Enumeration
 {
   val Client = Value("client")
-  val Robot  = Value("robot")
   val User   = Value("user")
 
   implicit val format: Format[Value] =
@@ -49,7 +48,7 @@ object CreatedRole
 final case class Permission
 (
   name: String,
-  display_name: Option[String],
+  displayName: Option[String],
   description: Option[String] = None
 )
 
@@ -62,7 +61,7 @@ object Permission
 final case class Role
 (
   name: String,
-  display_name: String,
+  displayName: String,
   description: Option[String] = None
 )
 
@@ -74,8 +73,8 @@ object Role
 
 final case class RolePermission
 (
-  role_id: String,
-  permission_id: String
+  roleId: String,
+  permissionId: String
 )
 
 object RolePermission
@@ -84,6 +83,16 @@ object RolePermission
     Json.format[RolePermission]
 }
 
+
+final case class AuthupResponse[T]
+(
+  data: T
+)
+object AuthupResponse
+{
+  implicit def reads[T: Reads]: Reads[AuthupResponse[T]] =
+    Json.reads[AuthupResponse[T]]
+}
 
 
 final case class TokenIntrospection
@@ -95,11 +104,22 @@ final case class TokenIntrospection
   name: String,
   given_name: Option[String],
   family_name: Option[String],
-  permissions: Set[Permission]
+  permissions: Set[TokenIntrospection.Permission]
 )
 
 object TokenIntrospection
 {
+
+  // Required because TokenIntrospection.permissions contains Permission with snake_case fields
+  final case class Permission
+  (
+    name: String,
+    display_name: Option[String],
+    description: Option[String] = None
+  )
+
+  implicit val readsPermission: Reads[TokenIntrospection.Permission] =
+    Json.reads[TokenIntrospection.Permission]
 
   implicit val reads: Reads[TokenIntrospection] =
     Json.reads[TokenIntrospection]

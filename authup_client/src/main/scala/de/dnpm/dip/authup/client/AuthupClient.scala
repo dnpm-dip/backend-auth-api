@@ -240,7 +240,7 @@ with Logging
        resp =>
          resp.status match {
            case 201 =>
-             Future.successful(resp.json.as[CreatedPermission])
+             Future.successful((resp.json \ "data").as[CreatedPermission])
            case 409 =>
              request("/permissions",Some(token))
                .withQueryStringParameters("filter[name]" -> permission.name)
@@ -265,7 +265,7 @@ with Logging
            resp =>
              resp.status match {
                case 201 =>
-                 Future.successful(resp.json.as[CreatedRole])
+                 Future.successful((resp.json \ "data").as[CreatedRole])
                case 409 =>
                  request("/roles",Some(token))
                    .withQueryStringParameters("filter[name]" -> role.name)
@@ -279,8 +279,8 @@ with Logging
              permissionIds.map(
                id =>
                  RolePermission(
-                   role_id       = createdRole.id,
-                   permission_id = id
+                   roleId       = createdRole.id,
+                   permissionId = id
                  )
              )
            )(

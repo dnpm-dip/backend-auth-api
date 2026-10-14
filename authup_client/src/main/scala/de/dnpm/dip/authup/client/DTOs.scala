@@ -13,7 +13,6 @@ object SubKind extends Enumeration
 {
   val Client = Value("client")
   val User   = Value("user")
-  val Robot  = Value("robot")
 
   implicit val format: Format[Value] =
     Json.formatEnum(this)
@@ -70,8 +69,8 @@ object Role
 
 final case class RolePermission
 (
-  role_id: String,
-  permission_id: String
+  roleId: String,
+  permissionId: String
 )
 
 object RolePermission
