@@ -12,7 +12,6 @@ import play.api.libs.json.{
 object SubjectKind extends Enumeration
 {
   val Client = Value("client")
-  val Robot  = Value("robot")
   val User   = Value("user")
 
   implicit val format: Format[Value] =
@@ -49,7 +48,7 @@ object CreatedRole
 final case class Permission
 (
   name: String,
-  display_name: Option[String],
+  displayName: Option[String],
   description: Option[String] = None
 )
 
@@ -62,7 +61,7 @@ object Permission
 final case class Role
 (
   name: String,
-  display_name: String,
+  displayName: String,
   description: Option[String] = None
 )
 
@@ -74,8 +73,8 @@ object Role
 
 final case class RolePermission
 (
-  role_id: String,
-  permission_id: String
+  roleId: String,
+  permissionId: String
 )
 
 object RolePermission

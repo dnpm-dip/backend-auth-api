@@ -235,13 +235,6 @@ with Logging
               "client_secret" -> credentials.secret
             )
 
-          case SubjectKind.Robot =>
-            Json.obj(
-              "grant_type" -> "robot_credentials",
-              "id"         -> credentials.id,
-              "secret"     -> credentials.secret
-            )
-
           case SubjectKind.User =>
             Json.obj(
               "grant_type" -> "password",
@@ -272,7 +265,7 @@ with Logging
      .put(Json.toJson(permission))
      .collect {
        case resp if resp.status == 201 || resp.status == 202 =>
-         resp.body[JsValue].as[CreatedPermission]
+         (resp.body[JsValue] \ "data").as[CreatedPermission]
      }  
   }
 
@@ -293,7 +286,7 @@ with Logging
          .put(Json.toJson(role))
          .collect {
             case resp if resp.status == 201 || resp.status == 202 =>
-              resp.body[JsValue].as[CreatedRole]
+              (resp.body[JsValue] \ "data").as[CreatedRole]
          }
 
        _ <-
@@ -301,8 +294,8 @@ with Logging
              permissionIds.map(
                id =>
                  RolePermission(
-                   role_id       = createdRole.id,
-                   permission_id = id
+                   roleId       = createdRole.id,
+                   permissionId = id
                  )
              )
            )(
