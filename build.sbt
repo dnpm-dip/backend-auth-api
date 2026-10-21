@@ -77,12 +77,12 @@ lazy val dependencies =
     val scalatest            = "org.scalatest"          %% "scalatest"               % "3.2.20" % Test
     val scalatest_play       = "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.2" % Test
     val play                 = "org.playframework"      %% "play"                    % "3.0.11"
-    val play_ws              = "org.playframework"      %% "play-ws"                 % "3.0.11"
-    val play_standalone_ws   = "org.playframework"      %% "play-ahc-ws-standalone"  % "3.0.11"
-    val play_standalone_json = "org.playframework"      %% "play-ws-standalone-json" % "3.0.11"
-    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.5.2"
-    val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.1.5" % Test
-    val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.1.6" % Test
+    val play_ws              = "org.playframework"      %% "play-ws"                 % "3.0.14"
+    val play_standalone_ws   = "org.playframework"      %% "play-ahc-ws-standalone"  % "3.0.14"
+    val play_standalone_json = "org.playframework"      %% "play-ws-standalone-json" % "3.0.14"
+    val service_base         = "de.dnpm.dip"            %% "service-base"            % "1.5.4"
+    val mtb_api              = "de.dnpm.dip"            %% "mtb-query-service-api"   % "1.1.6" % Test
+    val rd_api               = "de.dnpm.dip"            %% "rd-query-service-api"    % "1.1.7" % Test
   }
 
 
