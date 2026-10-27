@@ -15,7 +15,6 @@ import scala.collection.concurrent.{
 import scala.util.{
   Failure,
   Success,
-  Try
 }
 import scala.util.chaining._
 import cats.syntax.either._
@@ -42,9 +41,9 @@ import play.api.libs.ws.{
 import play.api.libs.ws.JsonBodyReadables._
 import play.api.libs.ws.JsonBodyWritables._
 import play.api.libs.json.{
-  JsValue,
   Json,
-  Reads
+  JsNull,
+  JsValue
 }
 import de.dnpm.dip.util.Logging
 import de.dnpm.dip.util.mapping.syntax._
@@ -157,11 +156,10 @@ with Logging
     request("/token/introspect",Some(token))
       .get()
       .map(
-        resp =>
-          resp.status match {
-            case 200 => resp.body[JsValue].as[TokenIntrospection].asRight // if active
-            case _   => result(resp).asLeft
-          }
+        resp => resp.status match {
+          case 200 => resp.body[JsValue].as[TokenIntrospection].asRight // if active
+          case _   => result(resp).asLeft
+        }
       )
       .andThen {
         case Success(Left(result)) =>
@@ -251,9 +249,28 @@ with Logging
         case Success(_) => log.debug("Logged into Authup")
       }
 
-  
+
+/*
   implicit class AuthupResponseOps(val authupResponse: AuthupResponse.type)
   {
+
+     def data[T: Reads](
+       success: Int => Boolean = Set(201,202),
+       recoverable: Int => Future[T],
+       onError: => String,
+     ): Try[WSResponse] => Future[T] = {
+     
+       case Success(resp) if expected(resp.status) =>
+         Try(resp.body[JsValue].as[AuthupResponse[T]].data)
+     
+       case Success(resp) =>
+         s"$onError: ${resp.status} ${resp.statusText}\n${resp.body}"
+           .tap(log.error)
+           .pipe(msg => Failure(new Exception(msg)))
+     
+       case Failure(t) => Failure(t)
+     }
+
      def data[T: Reads](
        expected: Int => Boolean = Set(201,202),
        onError: => String,
@@ -270,6 +287,7 @@ with Logging
        case Failure(t) => Failure(t)
      }
   }
+*/
 
 
   private def createOrGet(
@@ -282,10 +300,30 @@ with Logging
     log.debug(s"Setting up permission '${permission.name}'")
 
     request(s"/permissions/${permission.name}",Some(token))
-     .put(Json.toJson(permission))
-     .transform(
-       AuthupResponse.data[CreatedPermission](onError = s"Error setting up '${permission.name}'")
+     .put(
+       // Explicit "realm": null added as temporary workaround for compatibility with older Authup versions/setups
+       Json.toJsObject(permission) + ("realm" -> JsNull)
      )
+     .flatMap {
+       response => response.status match { 
+         case 201 | 202 =>
+           Future.successful(response.body[JsValue].as[AuthupResponse[CreatedPermission]].data)
+
+         case 409 =>
+           request(s"/permissions",Some(token)).withQueryStringParameters(
+             "filter[name]"    -> permission.name,
+             "filter[realmId]" -> "null"
+           )
+           .get()
+           .map(_.body[JsValue].as[AuthupResponse[List[CreatedPermission]]].data.head)
+
+         case _ =>
+           throw new Exception(s"Unexpected Authup response ${response.status} ${response.statusText}\n${response.body}")
+       }
+     }
+     .andThen {
+       case Failure(t) => log.error(s"Error setting up permission ${permission.name}",t)
+     }
   }
 
 
@@ -302,8 +340,27 @@ with Logging
     for {
       createdRole <-
         request(s"/roles/${role.name}",Some(token))
-         .put(Json.toJson(role))
-         .transform(AuthupResponse.data[CreatedRole](onError = s"Error setting up Role '${role.name}'"))
+         .put(Json.toJson(role))  // No realmId: null required
+         .flatMap(
+           response => response.status match { 
+             case 201 | 202 =>
+               Future.successful(response.body[JsValue].as[AuthupResponse[CreatedRole]].data)
+
+             case 409 =>
+               request(s"/roles",Some(token)).withQueryStringParameters(
+                 "filter[name]"    -> role.name,
+                 "filter[realmId]" -> "null"   
+               )
+               .get()
+               .map(_.body[JsValue].as[AuthupResponse[List[CreatedRole]]].data.head)
+
+             case _ =>
+               throw new Exception(s"Unexpected Authup response ${response.status} ${response.statusText}\n${response.body}")
+           }
+         )
+         .andThen { 
+           case Failure(t) => log.error(s"Error setting up role ${role.name}",t)
+         }
 
        _ <- Future.traverse(
          permissionIds.map(
