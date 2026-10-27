@@ -39,7 +39,10 @@ import play.api.libs.ws.{
   WSResponse,
   WSClient
 }
-import play.api.libs.json.JsString
+import play.api.libs.json.{
+  JsNull,
+  JsString
+}
 import play.api.libs.json.Json.{
   toJson,
   toJsObject
@@ -235,7 +238,7 @@ with Logging
     implicit ec: ExecutionContext
   ): Future[CreatedPermission] =
     request("/permissions",Some(token))
-     .post(toJson(permission))
+     .post(toJsObject(permission) + ("realmId" -> JsNull))
      .flatMap {
        resp =>
          resp.status match {
@@ -243,7 +246,10 @@ with Logging
              Future.successful((resp.json \ "data").as[CreatedPermission])
            case 409 =>
              request("/permissions",Some(token))
-               .withQueryStringParameters("filter[name]" -> permission.name)
+               .withQueryStringParameters(
+                 "filter[name]"    -> permission.name,
+                 "filter[realmId]" -> "null"
+               )
                .get()
                .map(r => (r.json \ "data" \ 0).as[CreatedPermission])
          }
