@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.6](https://github.com/dnpm-dip/backend-auth-api/compare/v1.1.5...v1.1.6) (2026-10-27)
+
+
+### Bug Fixes
+
+* create permissions as global and look up the global row on conflict ([#13](https://github.com/dnpm-dip/backend-auth-api/issues/13)) ([f23aeab](https://github.com/dnpm-dip/backend-auth-api/commit/f23aeab1972029363d087ddf76d084f9c13b2352))
+
 ## [1.1.5](https://github.com/dnpm-dip/backend-auth-api/compare/v1.1.4...v1.1.5) (2026-10-21)
 
 
