@@ -250,46 +250,6 @@ with Logging
       }
 
 
-/*
-  implicit class AuthupResponseOps(val authupResponse: AuthupResponse.type)
-  {
-
-     def data[T: Reads](
-       success: Int => Boolean = Set(201,202),
-       recoverable: Int => Future[T],
-       onError: => String,
-     ): Try[WSResponse] => Future[T] = {
-     
-       case Success(resp) if expected(resp.status) =>
-         Try(resp.body[JsValue].as[AuthupResponse[T]].data)
-     
-       case Success(resp) =>
-         s"$onError: ${resp.status} ${resp.statusText}\n${resp.body}"
-           .tap(log.error)
-           .pipe(msg => Failure(new Exception(msg)))
-     
-       case Failure(t) => Failure(t)
-     }
-
-     def data[T: Reads](
-       expected: Int => Boolean = Set(201,202),
-       onError: => String,
-     ): Try[WSResponse] => Try[T] = {
-     
-       case Success(resp) if expected(resp.status) =>
-         Try(resp.body[JsValue].as[AuthupResponse[T]].data)
-     
-       case Success(resp) =>
-         s"$onError: ${resp.status} ${resp.statusText}\n${resp.body}"
-           .tap(log.error)
-           .pipe(msg => Failure(new Exception(msg)))
-     
-       case Failure(t) => Failure(t)
-     }
-  }
-*/
-
-
   private def createOrGet(
     permission: Permission,
     token: String
@@ -301,8 +261,8 @@ with Logging
 
     request(s"/permissions/${permission.name}",Some(token))
      .put(
-       // Explicit "realm": null added as temporary workaround for compatibility with older Authup versions/setups
-       Json.toJsObject(permission) + ("realm" -> JsNull)
+       // Explicit "realmId": null added as temporary workaround for compatibility with older Authup versions/setups
+       Json.toJsObject(permission) + ("realmId" -> JsNull)
      )
      .flatMap {
        response => response.status match { 
